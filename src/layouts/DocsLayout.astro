@@ -4,7 +4,6 @@ import '../styles/shared/mru.css';
 import '../styles/shared/site.css';
 import '../styles/docs.css';
 import Analytics from '../components/Analytics.astro';
-import Madruga from '../components/Madruga.astro';
 import DocsTop from '../components/DocsTop.astro';
 import DocsNav from '../components/DocsNav.astro';
 import Toc from '../components/Toc.astro';
@@ -101,6 +100,5 @@ const graph = buildGraph(meta, crumbs, code);
         {toc && <Toc items={toc} />}
       </div>
     </div>
-    <Madruga />
   </body>
 </html>
