@@ -1,11 +1,14 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Core runtime", "href": "/core/quorum-crate/"}, {"label": "quorum CLI"}];
 ---
 
-<DocsLayout active="cli" menu="Core runtime › quorum CLI" toc={[{"href": "#synopsis", "label": "Synopsis"}, {"href": "#run", "label": "Run settings"}, {"href": "#faults", "label": "Faults"}, {"href": "#limits", "label": "Limits"}, {"href": "#sensor", "label": "Radiation sensor"}, {"href": "#output", "label": "Output"}, {"href": "#opssat", "label": "On OPS-SAT"}]}>
+<DocsLayout crumbs={crumbs} active="cli" menu="Core runtime › quorum CLI" toc={[{"href": "#synopsis", "label": "Synopsis"}, {"href": "#run", "label": "Run settings"}, {"href": "#faults", "label": "Faults"}, {"href": "#limits", "label": "Limits"}, {"href": "#sensor", "label": "Radiation sensor"}, {"href": "#output", "label": "Output"}, {"href": "#opssat", "label": "On OPS-SAT"}]}>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/core/quorum-crate/">Core runtime</a><span aria-hidden="true">/</span><span>quorum CLI</span></nav>
+    <Breadcrumbs items={crumbs} />
     <h1>The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> program</h1>
     <p class="lede">Three replica processes, a voter built on the core, fault injection, and enforced resource limits. It reports what it delivered and what that cost.</p>
 

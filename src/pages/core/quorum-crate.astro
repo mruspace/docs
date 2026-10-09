@@ -1,11 +1,14 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Core runtime", "href": "/core/quorum-crate/"}, {"label": "quorum crate"}];
 ---
 
-<DocsLayout active="crate" menu="Core runtime › quorum crate" toc={[{"href": "#install", "label": "Install"}, {"href": "#example", "label": "Example"}, {"href": "#api", "label": "API"}, {"href": "#proofs", "label": "Kani proofs"}, {"href": "#targets", "label": "Targets and builds"}]}>
+<DocsLayout crumbs={crumbs} code={{ name: 'quorum', repo: 'https://github.com/mruspace/flight', language: 'Rust', license: 'Apache-2.0' }} active="crate" menu="Core runtime › quorum crate" toc={[{"href": "#install", "label": "Install"}, {"href": "#example", "label": "Example"}, {"href": "#api", "label": "API"}, {"href": "#proofs", "label": "Kani proofs"}, {"href": "#targets", "label": "Targets and builds"}]}>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/core/quorum-crate/">Core runtime</a><span aria-hidden="true">/</span><span>quorum crate</span></nav>
+    <Breadcrumbs items={crumbs} />
     <h1>The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> crate</h1>
     <p class="lede">The decision core of the shrinking quorum. Each tick it decides what the system may deliver, given what three replicas returned.</p>
     <div class="row" style="gap: 8px; margin: 8px 0 24px">

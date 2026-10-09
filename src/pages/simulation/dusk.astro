@@ -1,11 +1,14 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Simulation", "href": "/simulation/dusk/"}, {"label": "Dusk"}];
 ---
 
-<DocsLayout active="dusk" menu="Simulation › Dusk" toc={[{"href": "#run", "label": "Run it"}, {"href": "#options", "label": "Options"}, {"href": "#model", "label": "The fault model"}, {"href": "#results", "label": "Default results"}, {"href": "#sweep", "label": "Sweeps and ground"}, {"href": "#claims", "label": "What this does not claim"}]}>
+<DocsLayout crumbs={crumbs} code={{ name: 'dusk', repo: 'https://github.com/mruspace/dusk', language: 'Rust', license: 'Apache-2.0' }} active="dusk" menu="Simulation › Dusk" toc={[{"href": "#run", "label": "Run it"}, {"href": "#options", "label": "Options"}, {"href": "#model", "label": "The fault model"}, {"href": "#results", "label": "Default results"}, {"href": "#sweep", "label": "Sweeps and ground"}, {"href": "#claims", "label": "What this does not claim"}]}>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/simulation/dusk/">Simulation</a><span aria-hidden="true">/</span><span>Dusk</span></nav>
+    <Breadcrumbs items={crumbs} />
     <h1>Dusk</h1>
     <p class="lede">A Monte Carlo of redundancy policies on hardware that only ever decays. It asks what a shrinking quorum buys, and what it costs, on the same simulated hardware.</p>
     <div class="row" style="gap: 8px; margin: 8px 0 24px"><span class="pill">Rust</span><span class="pill">no dependencies</span><span class="pill">deterministic per seed</span><a class="pill" href="https://dusk.mru.space" style="text-decoration: none">dusk.mru.space &#8599;</a></div>

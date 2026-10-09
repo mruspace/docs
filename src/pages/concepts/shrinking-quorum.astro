@@ -1,11 +1,14 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Concepts", "href": "/concepts/shrinking-quorum/"}, {"label": "Shrinking quorum"}];
 ---
 
-<DocsLayout active="quorum" menu="Concepts › Shrinking quorum" toc={[{"href": "#threshold", "label": "Fixed threshold"}, {"href": "#modes", "label": "Three modes"}, {"href": "#guarantees", "label": "Guarantees"}, {"href": "#cost", "label": "What it costs"}, {"href": "#health", "label": "Health and diagnosis"}, {"href": "#gdi", "label": "Degradation index"}, {"href": "#related", "label": "Related"}]}>
+<DocsLayout crumbs={crumbs} active="quorum" menu="Concepts › Shrinking quorum" toc={[{"href": "#threshold", "label": "Fixed threshold"}, {"href": "#modes", "label": "Three modes"}, {"href": "#guarantees", "label": "Guarantees"}, {"href": "#cost", "label": "What it costs"}, {"href": "#health", "label": "Health and diagnosis"}, {"href": "#gdi", "label": "Degradation index"}, {"href": "#related", "label": "Related"}]}>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/concepts/shrinking-quorum/">Concepts</a><span aria-hidden="true">/</span><span>Shrinking quorum</span></nav>
+    <Breadcrumbs items={crumbs} />
     <h1>Shrinking quorum</h1>
     <p class="lede">A redundancy policy: vote on three replicas, compare on two, self-check on one. It decides exactly as fixed TMR while TMR can run, and continues after TMR stops.</p>
 

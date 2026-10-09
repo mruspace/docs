@@ -1,11 +1,14 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Lab", "href": "/lab/2049/"}, {"label": "Mru 2049"}];
 ---
 
-<DocsLayout active="2049" menu="Lab › Mru 2049" toc={[{"href": "#run", "label": "Run it"}, {"href": "#controls", "label": "Controls"}, {"href": "#switches", "label": "URL switches"}, {"href": "#architecture", "label": "Architecture"}, {"href": "#coordinates", "label": "Coordinates"}]}>
+<DocsLayout crumbs={crumbs} code={{ name: 'Mru 2049', repo: 'https://github.com/mruspace/2049', language: 'TypeScript', license: 'Apache-2.0' }} active="2049" menu="Lab › Mru 2049" toc={[{"href": "#run", "label": "Run it"}, {"href": "#controls", "label": "Controls"}, {"href": "#switches", "label": "URL switches"}, {"href": "#architecture", "label": "Architecture"}, {"href": "#coordinates", "label": "Coordinates"}]}>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/lab/2049/">Lab</a><span aria-hidden="true">/</span><span>Mru 2049</span></nav>
+    <Breadcrumbs items={crumbs} />
     <h1>Mru 2049</h1>
     <p class="lede">A browser flight simulator on real astronomical data. Fly anywhere in the solar system and out to the nearby stars. Its purpose is to show scale. There is no combat, economy or progression.</p>
     <div class="row" style="gap: 8px; margin: 8px 0 24px"><span class="pill">TypeScript</span><span class="pill">three.js · WebGPU</span><span class="pill">109,389 stars</span><span class="pill">no server</span></div>
