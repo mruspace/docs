@@ -80,9 +80,6 @@
   display: grid;
   gap: 12px;
 }
-.nav-foot .theme-switch:not([hidden]) {
-  margin-left: 0;
-}
 .nav-foot .tiny {
   margin: 0;
 }
