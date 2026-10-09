@@ -1,0 +1,72 @@
+/* Site-only rules, loaded after mru.css. Nothing here changes a canvas rule
+   except where noted. */
+
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); }
+
+/* Skip link: off screen until focused. */
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 10;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 4px;
+  font-family: var(--display); font-size: 16px; text-decoration: none;
+}
+.skip:focus { left: 16px; top: 16px; }
+
+/* Visually hidden, still read by screen readers. */
+.sr-only {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Canvas fix: the quorum cell carries the class "mru" for its ochre bar, which
+   also gave it the page wrapper's min-height of 100vh. */
+.qcell.mru { min-height: 0; }
+
+/* Theme toggle, in the beacon row of the footer. The buttons draw at 26 px so
+   the row keeps its canvas height; a transparent ::after extends each hit
+   area to 44 px. */
+.theme-switch:not([hidden]) { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.theme-switch button {
+  position: relative;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; line-height: 1;
+  height: 26px; min-width: 44px; padding: 0 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--rule-strong); background: transparent; color: var(--ink-soft);
+}
+.theme-switch button::after { content: ""; position: absolute; inset: -9px -3px; }
+.theme-switch button:hover { border-color: var(--ink); color: var(--ink); }
+.theme-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+/* Astro's <picture> wraps each plate image. display: contents keeps the
+   canvas sizing rules (.plate img, .tile img) working on the <img>. */
+.plate picture, .tile picture { display: contents; }
+
+/* Request form: messages in plain language under the field they belong to.
+   No error colour exists in the palette (ochre means "alive"), so errors use
+   ink and a heavier border. */
+.field-error { font-family: var(--mono); font-size: 12.5px; line-height: 1.5; color: var(--ink); margin: 0; }
+.field-error::before { content: "! "; }
+.field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--ink); border-width: 2px; padding: 11px 13px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.sent:focus { outline: none; }
+.sent:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Quorum demo: shown only when JS runs; otherwise the 3 / 2 / 1 table. */
+html:not(.js) [data-quorum] { display: none; }
+html.js .quorum-fallback { display: none; }
+
+/* Terms: long-form legal text in the article measure. */
+.legal-text { max-width: 720px; font-size: 18px; line-height: 1.7; }
+.legal-text h2 { font-size: 28px; margin: 56px 0 14px; display: flex; gap: 14px; align-items: baseline; }
+.legal-text h2:first-child { margin-top: 0; }
+.legal-text h2 .num { font-family: var(--mono); font-size: 13px; color: var(--signal); }
+.legal-text p { margin-bottom: 1em; }
+.legal-text ul { padding-left: 1.25em; margin: 0 0 1em; }
+.legal-text li { margin-bottom: .5em; }
+.legal-text a { color: var(--accent); }
+.legal-text .callout { margin: 24px 0; display: block; }
+.legal-text .callout p:last-child { margin-bottom: 0; }
+
+/* Research log filter: hidden rows must win over .log a.entry { display: grid }. */
+.log a.entry[hidden] { display: none; }
+/* First section of a research entry: its heading sits on the top rule. */
+.entry-body > .article:first-child .body > h2:first-child { margin-top: 0; }

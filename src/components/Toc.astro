@@ -1,0 +1,28 @@
+---
+// "On this page". The active section turns ochre as you read (JS); without
+// JS the first entry is marked.
+interface Props {
+  items: { href: string; label: string }[];
+}
+const { items } = Astro.props;
+---
+
+<aside class="docs-toc" aria-label="On this page">
+  <h4>On this page</h4>
+  <ul data-toc>
+    {
+      items.map((t, i) => (
+        <li>
+          <a class={i === 0 ? 'on' : undefined} href={t.href}>
+            {t.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</aside>
+
+<script>
+  import { initToc } from '../scripts/toc';
+  initToc();
+</script>

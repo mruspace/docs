@@ -1,0 +1,75 @@
+---
+import DocsLayout from '../layouts/DocsLayout.astro';
+---
+
+<DocsLayout active="home" menu="Docs menu · Overview">
+  <div class="body" style="max-width: 920px">
+    <p class="eyebrow">Overview</p>
+    <h1>Mru documentation</h1>
+    <p class="lede" style="max-width: 40ch">Reference for Mru&#39;s open core: the shrinking-quorum runtime, the Dusk simulator, and the tools around them.</p>
+    <div class="callout" style="margin: 24px 0 8px">
+      <span class="tiny">Status</span>
+      <span>Early. The runtime is a prototype at TRL 3, and its API will change. All code here is open source under Apache 2.0. Mru 2049&#39;s bundled data keeps its own licences.</span>
+    </div>
+
+    <h2>Where to start</h2>
+    <div class="cards two" style="margin-top: 8px">
+      <a class="card" href="/concepts/shrinking-quorum/" style="text-decoration: none">
+        <p class="k">Concepts</p>
+        <h3 class="h3">Degradation-first design</h3>
+        <p class="small soft" style="margin: 10px 0 0">The Degradation-First Principle, the shrinking quorum, and how we score a system that is always losing parts.</p>
+      </a>
+      <a class="card" href="/core/quorum-crate/" style="text-decoration: none">
+        <p class="k">Core runtime</p>
+        <h3 class="h3">The <code>quorum</code> crate</h3>
+        <p class="small soft" style="margin: 10px 0 0">Vote on three, compare on two, self-check on one. <code>no_std</code>, no allocation, checked with Kani.</p>
+      </a>
+      <a class="card" href="/simulation/dusk/" style="text-decoration: none">
+        <p class="k">Simulation</p>
+        <h3 class="h3">Dusk</h3>
+        <p class="small soft" style="margin: 10px 0 0">A Monte Carlo of redundancy policies on hardware that only ever decays. 10,000 missions in about two seconds.</p>
+      </a>
+      <a class="card" href="/core/quorum-cli/" style="text-decoration: none">
+        <p class="k">Integrations</p>
+        <h3 class="h3">F&#180; and OPS-SAT</h3>
+        <p class="small soft" style="margin: 10px 0 0">The plan for F&#180; components around the Rust core, and the operations note for running on OPS-SAT.</p>
+      </a>
+      <a class="card" href="/lab/2049/" style="text-decoration: none">
+        <p class="k">Lab</p>
+        <h3 class="h3">Mru 2049</h3>
+        <p class="small soft" style="margin: 10px 0 0">A browser flight simulator on real astronomical data. 109,389 stars, planets correct for any date.</p>
+      </a>
+    </div>
+
+    <h2 id="quickstart">Quickstart</h2>
+    <p>You need a Rust toolchain. Clone the runtime, run its tests, then run the demo with a stuck replica and a dead one.</p>
+    <pre class="pre"><span class="c"># the runtime and its demo</span>
+git clone https://github.com/mruspace/flight
+<span class="k">cd</span> flight
+cargo test --workspace
+cargo run --release -- --policy shrink --ticks 20000 --seed 1 \
+  --upset-rate 0.001 --fault stuck:1@4000 --fault kill:0@9000</pre>
+    <p style="margin-top: 16px">Run the same seed with <code>--policy tmr</code> to compare:</p>
+    <pre class="pre">quorum --policy tmr    ...  useful=8993  detected=11007 wrong=0 halted_at=never
+quorum --policy shrink ...  <span class="s">useful=14490</span> detected=10    wrong=0 halted_at=never</pre>
+    <p style="margin-top: 16px">Then the simulator, which needs no dependencies:</p>
+    <pre class="pre">git clone https://github.com/mruspace/dusk
+<span class="k">cd</span> dusk
+cargo run --release              <span class="c"># 10,000 missions, about 2 s</span>
+cargo run --release -- --sweep   <span class="c"># sensitivity, about 30 s</span></pre>
+
+    <h2>Where the code lives</h2>
+    <div class="tbl-box">
+      <table class="tbl">
+        <thead><tr><th>Repository</th><th>What it is</th><th>Language</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="m"><a href="https://github.com/mruspace/flight">mruspace/flight</a></td><td>Decision core and demo program</td><td>Rust</td><td class="m">v0.1.1 · TRL 3</td></tr>
+          <tr><td class="m"><a href="https://github.com/mruspace/dusk">mruspace/dusk</a></td><td>Redundancy Monte Carlo</td><td>Rust</td><td class="m">0.1.0 · TRL 3–4</td></tr>
+          <tr><td class="m"><a href="https://github.com/mruspace/2049">mruspace/2049</a></td><td>Browser flight simulator</td><td>TypeScript</td><td class="m">Lab</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny" style="margin-top: 32px">Code Apache 2.0 · Whitepaper CC BY 4.0, doi:10.5281/zenodo.20579438 · Questions: <a href="https://mru.space/contact/">Request information</a></p>
+  </div>
+
+</DocsLayout>
