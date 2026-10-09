@@ -3,68 +3,179 @@ import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 
-const crumbs = [{"label": "Docs", "href": "/"}, {"label": "Simulation", "href": "/simulation/dusk/"}, {"label": "Dusk"}];
+const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/simulation/dusk/' }, { label: 'Dusk' }];
 ---
 
-<DocsLayout crumbs={crumbs} code={{ name: 'dusk', repo: 'https://github.com/mruspace/dusk', language: 'Rust', license: 'Apache-2.0' }} active="dusk" menu="Simulation › Dusk" toc={[{"href": "#run", "label": "Run it"}, {"href": "#options", "label": "Options"}, {"href": "#model", "label": "The fault model"}, {"href": "#results", "label": "Default results"}, {"href": "#sweep", "label": "Sweeps and ground"}, {"href": "#claims", "label": "What this does not claim"}]}>
+<DocsLayout
+  crumbs={crumbs}
+  code={{ name: 'dusk', repo: 'https://github.com/mruspace/dusk', language: 'Rust', license: 'Apache-2.0' }}
+  active="dusk"
+  menu="Simulation › Dusk"
+  toc={[
+    { href: '#run', label: 'Run it' },
+    { href: '#options', label: 'Options' },
+    { href: '#model', label: 'The fault model' },
+    { href: '#results', label: 'Default results' },
+    { href: '#sweep', label: 'Sweeps and ground' },
+    { href: '#claims', label: 'What this does not claim' },
+  ]}
+>
   <article class="body">
     <Breadcrumbs items={crumbs} />
     <h1>Dusk</h1>
-    <p class="lede">A Monte Carlo of redundancy policies on hardware that only ever decays. It asks what a shrinking quorum buys, and what it costs, on the same simulated hardware.</p>
-    <div class="row" style="gap: 8px; margin: 8px 0 24px"><span class="pill">Rust</span><span class="pill">no dependencies</span><span class="pill">deterministic per seed</span><a class="pill" href="https://dusk.mru.space" style="text-decoration: none">dusk.mru.space &#8599;</a></div>
+    <p class="lede">
+      A Monte Carlo of redundancy policies on hardware that only ever decays. It asks what a shrinking quorum buys, and
+      what it costs, on the same simulated hardware.
+    </p>
+    <div class="row" style="gap: 8px; margin: 8px 0 24px">
+      <span class="pill">Rust</span>
+      <span class="pill">no dependencies</span>
+      <span class="pill">deterministic per seed</span>
+      <a class="pill" href="https://dusk.mru.space" style="text-decoration: none">
+        dusk.mru.space &#8599;
+      </a>
+    </div>
 
     <h2 id="run">Run it</h2>
-    <pre class="pre">cargo run --release                 <span class="c"># the default scenario, about 2 s</span>
+    <pre
+      class="pre"
+      tabindex="0"
+    >cargo run --release                 <span class="c"># the default scenario, about 2 s</span>
 cargo run --release -- --spares 2   <span class="c"># add salvaged processors</span>
 cargo run --release -- --sweep      <span class="c"># sensitivity, about 30 s</span>
 cargo run --release -- --ground     <span class="c"># against TMR with a ground team, about 10 s</span>
 cargo run --release --bin charts    <span class="c"># redraw the charts and data.json</span></pre>
-    <p style="margin-top: 16px">Times are for an 8-core laptop. Results depend only on the seed, never on the thread count.</p>
+    <p style="margin-top: 16px">
+      Times are for an 8-core laptop. Results depend only on the seed, never on the thread count.
+    </p>
 
     <h2 id="options">Options</h2>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
-      <tbody>
-        <tr><td class="m">--runs</td><td class="m">10000</td><td>Missions per policy</td></tr>
-        <tr><td class="m">--seed</td><td class="m">1</td><td>Base seed</td></tr>
-        <tr><td class="m">--threads</td><td class="m">all cores</td><td>Worker threads</td></tr>
-        <tr><td class="m">--horizon-years</td><td class="m">1000</td><td>Mission horizon</td></tr>
-        <tr><td class="m">--nodes</td><td class="m">3</td><td>Processors at launch</td></tr>
-        <tr><td class="m">--spares</td><td class="m">0</td><td>Salvaged processors</td></tr>
-        <tr><td class="m">--shape</td><td class="m">1.5</td><td>Weibull shape</td></tr>
-        <tr><td class="m">--scale-years</td><td class="m">125</td><td>Weibull scale</td></tr>
-        <tr><td class="m">--p-corr</td><td class="m">0.1</td><td>Chance a death kills another</td></tr>
-        <tr><td class="m">--p-upset</td><td class="m">0.001</td><td>Bad-result upsets per node-day</td></tr>
-        <tr><td class="m">--coverage</td><td class="m">0.99</td><td>Lone self-check coverage</td></tr>
-        <tr><td class="m">--selfcheck-throughput</td><td class="m">0.5</td><td>Lone output vs a vote</td></tr>
-      </tbody>
-    </table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">--runs</td>
+            <td class="m">10000</td>
+            <td>Missions per policy</td>
+          </tr>
+          <tr>
+            <td class="m">--seed</td>
+            <td class="m">1</td>
+            <td>Base seed</td>
+          </tr>
+          <tr>
+            <td class="m">--threads</td>
+            <td class="m">all cores</td>
+            <td>Worker threads</td>
+          </tr>
+          <tr>
+            <td class="m">--horizon-years</td>
+            <td class="m">1000</td>
+            <td>Mission horizon</td>
+          </tr>
+          <tr>
+            <td class="m">--nodes</td>
+            <td class="m">3</td>
+            <td>Processors at launch</td>
+          </tr>
+          <tr>
+            <td class="m">--spares</td>
+            <td class="m">0</td>
+            <td>Salvaged processors</td>
+          </tr>
+          <tr>
+            <td class="m">--shape</td>
+            <td class="m">1.5</td>
+            <td>Weibull shape</td>
+          </tr>
+          <tr>
+            <td class="m">--scale-years</td>
+            <td class="m">125</td>
+            <td>Weibull scale</td>
+          </tr>
+          <tr>
+            <td class="m">--p-corr</td>
+            <td class="m">0.1</td>
+            <td>Chance a death kills another</td>
+          </tr>
+          <tr>
+            <td class="m">--p-upset</td>
+            <td class="m">0.001</td>
+            <td>Bad-result upsets per node-day</td>
+          </tr>
+          <tr>
+            <td class="m">--coverage</td>
+            <td class="m">0.99</td>
+            <td>Lone self-check coverage</td>
+          </tr>
+          <tr>
+            <td class="m">--selfcheck-throughput</td>
+            <td class="m">0.5</td>
+            <td>Lone output vs a vote</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="model">The fault model</h2>
     <p>Each mission is a day-by-day fault-injection run.</p>
     <ul class="sig-list">
-      <li><strong>Processors die</strong> on a Weibull lifetime. Shape 1.5 and a 125-year scale give a median life of about 98 years.</li>
-      <li><strong>Deaths can be correlated.</strong> With probability <code>p_corr</code>, a death also kills one other processor that day.</li>
-      <li><strong>Spares are salvaged</strong> from instruments as they die, already aged by the same radiation.</li>
-      <li><strong>Upsets corrupt a day&#39;s result</strong>, at the rate that gets past EDAC and scrubbing.</li>
-      <li><strong>The comparison is paired.</strong> Every policy sees the same fault history, so any difference is the policy.</li>
+      <li>
+        <strong>Processors die</strong> on a Weibull lifetime. Shape 1.5 and a 125-year scale give a median life of
+        about 98 years.
+      </li>
+      <li>
+        <strong>Deaths can be correlated.</strong> With probability <code>p_corr</code>, a death also kills one other
+        processor that day.
+      </li>
+      <li>
+        <strong>Spares are salvaged</strong> from instruments as they die, already aged by the same radiation.
+      </li>
+      <li>
+        <strong>Upsets corrupt a day&#39;s result</strong>, at the rate that gets past EDAC and scrubbing.
+      </li>
+      <li>
+        <strong>The comparison is paired.</strong> Every policy sees the same fault history, so any difference is the
+        policy.
+      </li>
     </ul>
 
     <h2 id="results">Default results</h2>
-    <pre class="pre">policy              useful      p10      p50      p90      service   wrong days
+    <pre class="pre" tabindex="0">policy              useful      p10      p50      p90      service   wrong days
                     mean y                                  mean y   mean / run
 fixed TMR             99.0     37.6     92.7    168.9         99.0        0.000
 standby simplex       83.1     38.4     78.3    134.0        166.4        0.603
 shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>        166.4        0.246</pre>
-    <p style="margin-top: 16px">1.34× the useful work of fixed TMR in total (95% CI 1.33× to 1.35×). Never less on any single mission.</p>
+    <p style="margin-top: 16px">
+      1.34× the useful work of fixed TMR in total (95% CI 1.33× to 1.35×). Never less on any single mission.
+    </p>
 
     <h2 id="sweep">Sweeps and ground support</h2>
-    <p><code>--sweep</code> varies each parameter the model cannot pin down. Across every row, the gain over fixed TMR stays between 1.11× and 1.68×.</p>
-    <p><code>--ground</code> adds a ground team that commands the fallback by hand while support lasts. With 49 years of support, Voyager&#39;s so far, the gain is still 1.25×. Answer time barely matters. What matters is whether anyone is still there.</p>
+    <p>
+      <code>--sweep</code> varies each parameter the model cannot pin down. Across every row, the gain over fixed TMR
+      stays between 1.11× and 1.68×.
+    </p>
+    <p>
+      <code>--ground</code> adds a ground team that commands the fallback by hand while support lasts. With 49 years of
+      support, Voyager&#39;s so far, the gain is still 1.25×. Answer time barely matters. What matters is whether anyone
+      is still there.
+    </p>
 
     <h2 id="claims">What this does not claim</h2>
-    <div class="callout"><span class="tiny">Note</span><span>The parameters are illustrative, not calibrated. The claim is the shape of the trade, and the sweep shows where it holds.</span></div>
+    <div class="callout">
+      <span class="tiny">Note</span>
+      <span>
+        The parameters are illustrative, not calibrated. The claim is the shape of the trade, and the sweep shows where
+        it holds.
+      </span>
+    </div>
     <DocsEnd />
   </article>
-
 </DocsLayout>

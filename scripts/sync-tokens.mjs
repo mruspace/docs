@@ -15,16 +15,33 @@ const FILES = [
   ['src/styles/mru.css', 'src/styles/shared/mru.css'],
   ['src/styles/site.css', 'src/styles/shared/site.css'],
   // Shared components, at the same paths so their imports resolve.
-  ...['MarkSvg', 'ThemeToggle', 'Analytics', 'Madruga'].map((c) => [`src/components/${c}.astro`, `src/components/${c}.astro`]),
+  ...['MarkSvg', 'ThemeToggle', 'Analytics', 'Madruga'].map((c) => [
+    `src/components/${c}.astro`,
+    `src/components/${c}.astro`,
+  ]),
   ['src/scripts/theme.ts', 'src/scripts/theme.ts'],
   ['src/components/Breadcrumbs.astro', 'src/components/Breadcrumbs.astro'],
   // Shared build scripts: share cards, Markdown twins and llms files, checks.
   // Each repo keeps its own scripts/seo/config.mjs.
-  ...['og/card.mjs', 'og/card.d.mts', 'og/fonts/jost-500.ttf', 'og/fonts/ibm-plex-mono-500.ttf', 'og/fonts/OFL-jost.txt', 'og/fonts/OFL-ibmplexmono.txt', 'seo/postbuild.mjs', 'seo/check.mjs'].map((f) => [`scripts/${f}`, `scripts/${f}`]),
   ...[
-    'jost-400', 'jost-500', 'jost-600',
-    'source-serif-4-400', 'source-serif-4-600', 'source-serif-4-400-italic',
-    'ibm-plex-mono-400', 'ibm-plex-mono-500',
+    'og/card.mjs',
+    'og/card.d.mts',
+    'og/fonts/jost-500.ttf',
+    'og/fonts/ibm-plex-mono-500.ttf',
+    'og/fonts/OFL-jost.txt',
+    'og/fonts/OFL-ibmplexmono.txt',
+    'seo/postbuild.mjs',
+    'seo/check.mjs',
+  ].map((f) => [`scripts/${f}`, `scripts/${f}`]),
+  ...[
+    'jost-400',
+    'jost-500',
+    'jost-600',
+    'source-serif-4-400',
+    'source-serif-4-600',
+    'source-serif-4-400-italic',
+    'ibm-plex-mono-400',
+    'ibm-plex-mono-500',
   ].map((f) => [`public/fonts/${f}.woff2`, `public/fonts/${f}.woff2`]),
   ...['jost', 'sourceserif4', 'ibmplexmono'].map((f) => [`public/fonts/OFL-${f}.txt`, `public/fonts/OFL-${f}.txt`]),
 ];

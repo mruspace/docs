@@ -13,7 +13,10 @@ function parse(d?: string): string | null {
 }
 
 export const GET: APIRoute = () => {
-  const newest = PAGES.map((p) => parse(p.updated)).filter(Boolean).sort().at(-1)!;
+  const newest = PAGES.map((p) => parse(p.updated))
+    .filter(Boolean)
+    .sort()
+    .at(-1)!;
   const urls = METADATA.map((m) => {
     const path = new URL(m.url).pathname;
     const page = PAGES.find((p) => p.path === path);

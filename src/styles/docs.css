@@ -2,25 +2,101 @@
 
 /* The canvas search field sits straight in the top bar; here it is wrapped
    in a <form>, which takes over its flex sizing. */
-.search-form { flex: 1; max-width: 440px; position: relative; display: flex; }
-.search-form .search { flex: 1; max-width: none; }
-@container (max-width: 640px) { .docs-top .search-form { display: none; } }
+.search-form {
+  flex: 1;
+  max-width: 440px;
+  position: relative;
+  display: flex;
+}
+.search-form .search {
+  flex: 1;
+  max-width: none;
+}
+@container (max-width: 640px) {
+  .docs-top .search-form {
+    display: none;
+  }
+}
 
 .search-results {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20;
-  background: var(--card); border: 1px solid var(--rule-strong); border-radius: 6px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, .08); max-height: 70vh; overflow-y: auto;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  max-height: 70vh;
+  overflow-y: auto;
 }
-.search-results ul { list-style: none; margin: 0; padding: 6px; }
-.search-results a { display: block; padding: 10px 12px; border-radius: 4px; text-decoration: none; min-height: 44px; }
-.search-results a:hover, .search-results a:focus-visible { background: var(--bg-sunk); }
-.search-title { display: block; font-family: var(--display); font-size: 16px; color: var(--ink); }
-.search-excerpt { display: block; font-size: 14px; line-height: 1.5; color: var(--ink-soft); margin-top: 2px; }
-.search-excerpt mark { background: var(--signal-soft); color: var(--ink); }
-.search-empty { margin: 0; padding: 14px 16px; font-family: var(--mono); font-size: 12.5px; color: var(--ink-soft); }
+.search-results ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+}
+.search-results a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 4px;
+  text-decoration: none;
+  min-height: 44px;
+}
+.search-results a:hover,
+.search-results a:focus-visible {
+  background: var(--bg-sunk);
+}
+.search-title {
+  display: block;
+  font-family: var(--display);
+  font-size: 16px;
+  color: var(--ink);
+}
+.search-excerpt {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+.search-excerpt mark {
+  background: var(--signal-soft);
+  color: var(--ink);
+}
+.search-empty {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
 
 /* Theme toggle and terms link at the foot of the docs nav. */
-.nav-foot { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--rule); display: grid; gap: 12px; }
-.nav-foot .theme-switch:not([hidden]) { margin-left: 0; }
-.nav-foot .tiny { margin: 0; }
-.nav-foot .tiny a { display: inline; padding: 0; margin: 0; color: var(--ink-faint); }
+.nav-foot {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  gap: 12px;
+}
+.nav-foot .theme-switch:not([hidden]) {
+  margin-left: 0;
+}
+.nav-foot .tiny {
+  margin: 0;
+}
+.nav-foot .tiny a {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  color: var(--ink-faint);
+}
+
+/* Tablets (no canvas artboard): the top bar keeps search and "mru.space" and
+   drops the three links it also drops on phones, so it does not overflow. */
+@container (min-width: 641px) and (max-width: 920px) {
+  .docs-top .hide-s {
+    display: none;
+  }
+}

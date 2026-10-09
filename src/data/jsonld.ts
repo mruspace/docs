@@ -1,6 +1,6 @@
 // JSON-LD for docs pages: one @graph per page. The Organization is the same
 // node as on mru.space (same @id). Types per route from the Metadata board.
-import type { BreadcrumbList, Graph, Organization, SoftwareSourceCode, TechArticle, WebSite, WithContext } from 'schema-dts';
+import type { BreadcrumbList, Graph, Organization, SoftwareSourceCode, TechArticle, WebSite } from 'schema-dts';
 import type { PageMeta } from './metadata';
 import { SITE } from './site';
 
@@ -29,7 +29,7 @@ const organization = (): Organization => ({
   sameAs: ['https://x.com/mruspace', SITE.github, 'https://doi.org/10.5281/zenodo.20579438'],
 });
 
-export function buildGraph(meta: PageMeta, crumbs?: Crumb[], code?: Code): WithContext<Graph> {
+export function buildGraph(meta: PageMeta, crumbs?: Crumb[], code?: Code): Graph {
   const url = meta.url;
   const nodes: Graph['@graph'][number][] = [
     organization(),

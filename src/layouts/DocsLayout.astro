@@ -79,15 +79,22 @@ const graph = buildGraph(meta, crumbs, code);
     <Analytics />
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
     <div class="mru">
       <DocsTop />
       <details class="docs-menu">
-        <summary><span>{menu}</span><span aria-hidden="true">+</span></summary>
+        <summary>
+          <span>{menu}</span>
+          <span aria-hidden="true">+</span>
+        </summary>
         <DocsNav active={active} withFoot={false} />
       </details>
       <div class="docs-shell">
-        <aside class="docs-nav"><DocsNav active={active} /></aside>
+        <div class="docs-nav">
+          <DocsNav active={active} />
+        </div>
         <main class="docs-main" id="main" data-pagefind-body>
           <slot />
         </main>
