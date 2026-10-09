@@ -1,0 +1,65 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+---
+
+<DocsLayout active="2049" menu="Lab › Mru 2049" toc={[{"href": "#run", "label": "Run it"}, {"href": "#controls", "label": "Controls"}, {"href": "#switches", "label": "URL switches"}, {"href": "#architecture", "label": "Architecture"}, {"href": "#coordinates", "label": "Coordinates"}]}>
+  <article class="body">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/lab/2049/">Lab</a><span aria-hidden="true">/</span><span>Mru 2049</span></nav>
+    <h1>Mru 2049</h1>
+    <p class="lede">A browser flight simulator on real astronomical data. Fly anywhere in the solar system and out to the nearby stars. Its purpose is to show scale. There is no combat, economy or progression.</p>
+    <div class="row" style="gap: 8px; margin: 8px 0 24px"><span class="pill">TypeScript</span><span class="pill">three.js · WebGPU</span><span class="pill">109,389 stars</span><span class="pill">no server</span></div>
+
+    <h2 id="run">Run it</h2>
+    <pre class="pre">npm install
+npm run dev
+npm run check   <span class="c"># types, tests and lint</span></pre>
+    <p style="margin-top: 16px">The data files in <code>public/</code> are committed, so a fresh clone flies without building any assets.</p>
+
+    <h2 id="controls">Controls</h2>
+    <div class="tbl-box"><table class="tbl">
+      <thead><tr><th>Input</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td class="m">Mouse</td><td>Pitch and yaw, rate based</td></tr>
+        <tr><td class="m">Space</td><td>Full throttle. The ship handles the arrival</td></tr>
+        <tr><td class="m">W / S</td><td>Throttle, logarithmic, 1 m/s to 1000 light years per second</td></tr>
+        <tr><td class="m">Shift</td><td>Hold for ten times the throttle rate</td></tr>
+        <tr><td class="m">A / D</td><td>Roll</td></tr>
+        <tr><td class="m">X</td><td>Full stop</td></tr>
+        <tr><td class="m">O</td><td>Match orbit with the nearest body</td></tr>
+        <tr><td class="m">F</td><td>Find an object by name</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="switches">URL switches</h2>
+    <div class="tbl-box"><table class="tbl">
+      <tbody>
+        <tr><td class="m">?webgl</td><td>Force the WebGL2 backend</td></tr>
+        <tr><td class="m">?debug=sky</td><td>The star pass alone, amplified 400×</td></tr>
+        <tr><td class="m">?debug=scene</td><td>The scene pass alone, with no sky</td></tr>
+        <tr><td class="m">?debug=depth</td><td>Linear depth</td></tr>
+        <tr><td class="m">?debug=alpha</td><td>The scene pass&#39;s alpha channel</td></tr>
+      </tbody>
+    </table></div>
+
+    <h2 id="architecture">How it is put together</h2>
+    <pre class="pre">sim     Ship state, date, flight. All Float64. Never imports three.js
+ephem   Body positions and orientations from astronomy-engine
+scene   Meshes, materials, and the per-frame rebase
+render  Renderer, post chain, auto-exposure, textures
+stars   Star catalogue, point-source flux, the instanced star field
+input   Keyboard, pointer and touch, into one control struct
+ui      HUD and panels. Never renders inside the frame loop
+tools   Build-time scripts. Their output is committed</pre>
+
+    <h2 id="coordinates">The coordinate system</h2>
+    <ul class="sig-list">
+      <li><strong>Float64 on the CPU.</strong> All state is metres in the heliocentric J2000 mean equatorial frame. It never enters a shader.</li>
+      <li><strong>Floating origin.</strong> The camera sits at exactly (0,0,0) and never moves.</li>
+      <li><strong>Reverse-Z depth</strong>, behind a runtime toggle.</li>
+      <li><strong>Distant-body rescale.</strong> Anything past 1e8 m is drawn at 1e8 m and scaled to keep its angular size.</li>
+    </ul>
+    <DocsEnd />
+  </article>
+
+</DocsLayout>

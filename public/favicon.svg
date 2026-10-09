@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Mru Aerospace">
+  <style>
+    .mk { stroke: #16161a; }
+    .fl { fill: #16161a; }
+    text { font-family: "Futura", "Century Gothic", "Avenir Next", sans-serif; font-weight: 500; }
+    @media (prefers-color-scheme: dark) {
+      .mk { stroke: #ecece8; }
+      .fl { fill: #ecece8; }
+    }
+  </style>
+  <circle class="mk" cx="50" cy="50" r="34" fill="none" stroke-width="2.4"/>
+  <ellipse class="mk" cx="50" cy="50" rx="30" ry="14" fill="none" stroke-width="1.4" transform="rotate(-22 50 50)"/>
+  <text class="fl" x="50" y="55.6" text-anchor="middle" font-size="16">M</text>
+</svg>

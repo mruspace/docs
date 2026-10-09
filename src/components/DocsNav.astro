@@ -1,0 +1,43 @@
+---
+// Docs navigation (DocsNav artboard), plus the theme toggle and the terms
+// link at its foot.
+import ThemeToggle from './ThemeToggle.astro';
+import { NAV, type NavId } from '../data/nav';
+import { SITE } from '../data/site';
+
+interface Props {
+  active: NavId;
+  /** The copy inside the phone menu repeats the nav; only one carries the toggle. */
+  withFoot?: boolean;
+}
+const { active, withFoot = true } = Astro.props;
+---
+
+<nav class="mru part navlist" aria-label="Docs">
+  {
+    NAV.map((g) => (
+      <>
+        <h4>{g.title}</h4>
+        <ul>
+          {g.items.map((i) => (
+            <li>
+              <a class={i.id === active ? 'on' : undefined} href={i.href} aria-current={i.id === active ? 'page' : undefined}>
+                {i.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    ))
+  }
+  {
+    withFoot && (
+      <div class="nav-foot">
+        <ThemeToggle />
+        <p class="tiny">
+          <a href={`${SITE.www}/terms/`}>Terms &amp; analytics notice</a>
+        </p>
+      </div>
+    )
+  }
+</nav>
