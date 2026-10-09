@@ -15,10 +15,7 @@ const FILES = [
   ['src/styles/mru.css', 'src/styles/shared/mru.css'],
   ['src/styles/site.css', 'src/styles/shared/site.css'],
   // Shared components, at the same paths so their imports resolve.
-  ...['MarkSvg', 'ThemeToggle', 'Analytics', 'Madruga'].map((c) => [
-    `src/components/${c}.astro`,
-    `src/components/${c}.astro`,
-  ]),
+  ...['MarkSvg', 'ThemeToggle', 'Analytics'].map((c) => [`src/components/${c}.astro`, `src/components/${c}.astro`]),
   ['src/scripts/theme.ts', 'src/scripts/theme.ts'],
   ['src/components/Breadcrumbs.astro', 'src/components/Breadcrumbs.astro'],
   // Shared build scripts: share cards, Markdown twins and llms files, checks.
