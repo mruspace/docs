@@ -3,8 +3,22 @@
 import { SITE } from './site';
 
 export type NavId =
-  | 'home' | 'qs' | 'dfp' | 'quorum' | 'gdi' | 'layers' | 'crate' | 'cli' | 'proofs'
-  | 'targets' | 'dusk' | 'model' | 'sweep' | 'fprime' | 'opssat' | '2049';
+  | 'home'
+  | 'qs'
+  | 'dfp'
+  | 'quorum'
+  | 'gdi'
+  | 'layers'
+  | 'crate'
+  | 'cli'
+  | 'proofs'
+  | 'targets'
+  | 'dusk'
+  | 'model'
+  | 'sweep'
+  | 'fprime'
+  | 'opssat'
+  | '2049';
 
 export interface NavGroup {
   title: string;
@@ -69,9 +83,26 @@ export interface DocPage {
 
 export const PAGES: DocPage[] = [
   { path: '/', short: 'Overview', file: 'src/pages/index.astro' },
-  { path: '/concepts/shrinking-quorum/', short: 'Shrinking quorum', updated: '7 Oct 2026', file: 'src/pages/concepts/shrinking-quorum.astro' },
-  { path: '/core/quorum-crate/', short: 'The quorum crate', updated: '7 Oct 2026', source: 'quorum/src/lib.rs', file: 'src/pages/core/quorum-crate.astro' },
-  { path: '/core/quorum-cli/', short: 'The quorum CLI', updated: '7 Oct 2026', source: 'demo/src/main.rs', file: 'src/pages/core/quorum-cli.astro' },
+  {
+    path: '/concepts/shrinking-quorum/',
+    short: 'Shrinking quorum',
+    updated: '7 Oct 2026',
+    file: 'src/pages/concepts/shrinking-quorum.astro',
+  },
+  {
+    path: '/core/quorum-crate/',
+    short: 'The quorum crate',
+    updated: '7 Oct 2026',
+    source: 'quorum/src/lib.rs',
+    file: 'src/pages/core/quorum-crate.astro',
+  },
+  {
+    path: '/core/quorum-cli/',
+    short: 'The quorum CLI',
+    updated: '7 Oct 2026',
+    source: 'demo/src/main.rs',
+    file: 'src/pages/core/quorum-cli.astro',
+  },
   { path: '/simulation/dusk/', short: 'Dusk', updated: '29 Sep 2026', file: 'src/pages/simulation/dusk.astro' },
   { path: '/lab/2049/', short: 'Mru 2049', updated: 'Sep 2026', file: 'src/pages/lab/2049.astro' },
 ];

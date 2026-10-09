@@ -1,25 +1,55 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Core runtime', href: '/core/quorum-crate/' },
+  { label: 'quorum crate' },
+];
 ---
 
-<DocsLayout active="crate" menu="Core runtime › quorum crate" toc={[{"href": "#install", "label": "Install"}, {"href": "#example", "label": "Example"}, {"href": "#api", "label": "API"}, {"href": "#proofs", "label": "Kani proofs"}, {"href": "#targets", "label": "Targets and builds"}]}>
+<DocsLayout
+  crumbs={crumbs}
+  code={{ name: 'quorum', repo: 'https://github.com/mruspace/flight', language: 'Rust', license: 'Apache-2.0' }}
+  active="crate"
+  menu="Core runtime › quorum crate"
+  toc={[
+    { href: '#install', label: 'Install' },
+    { href: '#example', label: 'Example' },
+    { href: '#api', label: 'API' },
+    { href: '#proofs', label: 'Kani proofs' },
+    { href: '#targets', label: 'Targets and builds' },
+  ]}
+>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/core/quorum-crate/">Core runtime</a><span aria-hidden="true">/</span><span>quorum crate</span></nav>
-    <h1>The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> crate</h1>
-    <p class="lede">The decision core of the shrinking quorum. Each tick it decides what the system may deliver, given what three replicas returned.</p>
+    <Breadcrumbs items={crumbs} />
+    <h1>
+      The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> crate
+    </h1>
+    <p class="lede">
+      The decision core of the shrinking quorum. Each tick it decides what the system may deliver, given what three
+      replicas returned.
+    </p>
     <div class="row" style="gap: 8px; margin: 8px 0 24px">
-      <span class="pill">no_std</span><span class="pill">no allocation</span><span class="pill">no dependencies</span><span class="pill sig"><span class="dot"></span>4 Kani proofs</span><span class="pill">v0.1.1</span>
+      <span class="pill">no_std</span>
+      <span class="pill">no allocation</span>
+      <span class="pill">no dependencies</span>
+      <span class="pill sig">
+        <span class="dot"></span>4 Kani proofs
+      </span>
+      <span class="pill">v0.1.1</span>
     </div>
 
     <h2 id="install">Install</h2>
     <p>The crate is not on crates.io yet. Depend on the repository at a tag:</p>
-    <pre class="pre"><span class="c"># Cargo.toml</span>
+    <pre class="pre" tabindex="0"><span class="c"># Cargo.toml</span>
 [dependencies]
 quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.1.1"</span> {'}'}</pre>
 
     <h2 id="example">Example</h2>
-    <pre class="pre"><span class="k">use</span> quorum::{'{'}decide, Health, Outcome, Policy, Reply{'}'};
+    <pre class="pre" tabindex="0"><span class="k">use</span> quorum::{'{'}decide, Health, Outcome, Policy, Reply{'}'};
 
 <span class="k">let mut</span> health = Health::new();
 <span class="k">let</span> replies = [Reply::Single(42), Reply::Single(42), Reply::Single(7)];
@@ -34,71 +64,167 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
     <h3>const REPLICAS: usize = 3</h3>
     <p>Number of replicas.</p>
     <h3>const STRIKES: usize = 3</h3>
-    <p>Strikes within <code>STRIKE_WINDOW</code> ticks that trigger a diagnosis.</p>
+    <p>
+      Strikes within <code>STRIKE_WINDOW</code> ticks that trigger a diagnosis.
+    </p>
     <h3>const STRIKE_WINDOW: u64 = 200</h3>
     <p>Length of the strike window, in ticks.</p>
 
     <h3>enum Policy</h3>
-    <div class="tbl-box"><table class="tbl"><tbody>
-      <tr><td class="m">Shrink</td><td>Vote on three, compare on two, self-check on one.</td></tr>
-      <tr><td class="m">Tmr</td><td>Vote on three, compare on two, stop on one (classic fixed TMR).</td></tr>
-    </tbody></table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <tbody>
+          <tr>
+            <td class="m">Shrink</td>
+            <td>Vote on three, compare on two, self-check on one.</td>
+          </tr>
+          <tr>
+            <td class="m">Tmr</td>
+            <td>Vote on three, compare on two, stop on one (classic fixed TMR).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>enum Mode</h3>
-    <p><code>Vote</code>, <code>Compare</code>, <code>SelfCheck</code> (one replica computes everything twice and compares with itself), <code>Halted</code>.</p>
+    <p>
+      <code>Vote</code>, <code>Compare</code>, <code>SelfCheck</code> (one replica computes everything twice and
+      compares with itself), <code>Halted</code>.
+    </p>
 
     <h3>enum Reply</h3>
-    <div class="tbl-box"><table class="tbl"><tbody>
-      <tr><td class="m">Absent</td><td>The replica is dead or did not answer.</td></tr>
-      <tr><td class="m">Single(u64)</td><td>One result.</td></tr>
-      <tr><td class="m">Pair(u64, u64)</td><td>Two results of the same computation (self-check).</td></tr>
-    </tbody></table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <tbody>
+          <tr>
+            <td class="m">Absent</td>
+            <td>The replica is dead or did not answer.</td>
+          </tr>
+          <tr>
+            <td class="m">Single(u64)</td>
+            <td>One result.</td>
+          </tr>
+          <tr>
+            <td class="m">Pair(u64, u64)</td>
+            <td>Two results of the same computation (self-check).</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>enum Outcome</h3>
-    <div class="tbl-box"><table class="tbl"><tbody>
-      <tr class="hl"><td class="m">Deliver(u64)</td><td>Deliver this result.</td></tr>
-      <tr><td class="m">Detected</td><td>A disagreement was caught; deliver nothing this tick.</td></tr>
-      <tr><td class="m">Halted</td><td>The policy cannot continue with the replicas left.</td></tr>
-    </tbody></table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <tbody>
+          <tr class="hl">
+            <td class="m">Deliver(u64)</td>
+            <td>Deliver this result.</td>
+          </tr>
+          <tr>
+            <td class="m">Detected</td>
+            <td>A disagreement was caught; deliver nothing this tick.</td>
+          </tr>
+          <tr>
+            <td class="m">Halted</td>
+            <td>The policy cannot continue with the replicas left.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>struct Verdict</h3>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Field</th><th>Type</th><th>Meaning</th></tr></thead>
-      <tbody>
-        <tr><td class="m">mode</td><td class="m">Mode</td><td>The mode used this tick.</td></tr>
-        <tr><td class="m">outcome</td><td class="m">Outcome</td><td>What to do with this tick.</td></tr>
-        <tr><td class="m">dissent</td><td class="m">[bool; 3]</td><td>Replicas that were outvoted (vote mode only).</td></tr>
-        <tr><td class="m">diagnose</td><td class="m">bool</td><td>Two replicas disagree and nothing tells which is wrong: run a known-answer test on both (shrinking quorum only).</td></tr>
-      </tbody>
-    </table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">mode</td>
+            <td class="m">Mode</td>
+            <td>The mode used this tick.</td>
+          </tr>
+          <tr>
+            <td class="m">outcome</td>
+            <td class="m">Outcome</td>
+            <td>What to do with this tick.</td>
+          </tr>
+          <tr>
+            <td class="m">dissent</td>
+            <td class="m">[bool; 3]</td>
+            <td>Replicas that were outvoted (vote mode only).</td>
+          </tr>
+          <tr>
+            <td class="m">diagnose</td>
+            <td class="m">bool</td>
+            <td>
+              Two replicas disagree and nothing tells which is wrong: run a known-answer test on both (shrinking quorum
+              only).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h3>fn mode(policy, alive) -&gt; Mode</h3>
-    <p>The mode a policy runs in with <code>alive</code> live replicas.</p>
+    <p>
+      The mode a policy runs in with <code>alive</code> live replicas.
+    </p>
     <h3>fn decide(policy, &amp;[Reply; 3]) -&gt; Verdict</h3>
     <p>Decide what to deliver from the replicas&#39; replies.</p>
     <h3>struct Health</h3>
-    <p>Strike record per replica. <code>Health::new()</code> is <code>const</code>. <code>strike(i, tick)</code> returns <code>true</code> when replica <code>i</code> has three strikes inside the window and must be diagnosed. <code>clear(i)</code> forgets its strikes after it passes.</p>
+    <p>
+      Strike record per replica. <code>Health::new()</code> is <code>const</code>. <code>strike(i, tick)</code> returns{' '}
+      <code>true</code> when replica <code>i</code> has three strikes inside the window and must be diagnosed.{' '}
+      <code>clear(i)</code> forgets its strikes after it passes.
+    </p>
 
     <h2 id="proofs">Kani proofs</h2>
-    <p>Run with <code>cargo kani -p quorum</code>. Each holds for every possible input.</p>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Proof</th><th>Property</th></tr></thead>
-      <tbody>
-        <tr><td class="m">identical_while_tmr_can_run</td><td>With two or more replicas alive, both policies decide the same.</td></tr>
-        <tr><td class="m">tmr_stops_below_two</td><td>Fixed TMR halts below two replicas.</td></tr>
-        <tr><td class="m">shrink_halts_only_with_nothing_left</td><td>The shrinking quorum halts only at zero.</td></tr>
-        <tr><td class="m">delivers_only_agreed_values</td><td>A delivered value had two votes, or a clean self-check.</td></tr>
-      </tbody>
-    </table></div>
+    <p>
+      Run with <code>cargo kani -p quorum</code>. Each holds for every possible input.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Proof</th>
+            <th>Property</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">identical_while_tmr_can_run</td>
+            <td>With two or more replicas alive, both policies decide the same.</td>
+          </tr>
+          <tr>
+            <td class="m">tmr_stops_below_two</td>
+            <td>Fixed TMR halts below two replicas.</td>
+          </tr>
+          <tr>
+            <td class="m">shrink_halts_only_with_nothing_left</td>
+            <td>The shrinking quorum halts only at zero.</td>
+          </tr>
+          <tr>
+            <td class="m">delivers_only_agreed_values</td>
+            <td>A delivered value had two votes, or a clean self-check.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="targets">Targets and builds</h2>
     <p>CI builds and tests on every change:</p>
     <ul class="sig-list">
       <li>Linux ARM64, Linux x86_64 and macOS (Apple silicon)</li>
-      <li>Bare-metal ARM Cortex-M, <code>thumbv7em-none-eabihf</code>, as <code>no_std</code> (build only)</li>
+      <li>
+        Bare-metal ARM Cortex-M, <code>thumbv7em-none-eabihf</code>, as <code>no_std</code> (build only)
+      </li>
       <li>Static ARM Linux binaries of the demo, 64-bit and 32-bit (hard and soft float), tested under emulation</li>
     </ul>
     <DocsEnd />
   </article>
-
 </DocsLayout>

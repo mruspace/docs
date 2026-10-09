@@ -13,31 +13,31 @@ interface Props {
 const { active, withFoot = true } = Astro.props;
 ---
 
-<nav class="mru part navlist" aria-label="Docs">
-  {
-    NAV.map((g) => (
-      <>
-        <h4>{g.title}</h4>
-        <ul>
-          {g.items.map((i) => (
-            <li>
-              <a class={i.id === active ? 'on' : undefined} href={i.href} aria-current={i.id === active ? 'page' : undefined}>
-                {i.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </>
-    ))
-  }
-  {
-    withFoot && (
-      <div class="nav-foot">
-        <ThemeToggle />
-        <p class="tiny">
-          <a href={`${SITE.www}/terms/`}>Terms &amp; analytics notice</a>
-        </p>
-      </div>
-    )
-  }
+<nav class="mru part navlist" aria-label={withFoot ? 'Docs' : 'Docs, small screens'}>
+  {NAV.map((g) => (
+    <>
+      <h4>{g.title}</h4>
+      <ul>
+        {g.items.map((i) => (
+          <li>
+            <a
+              class={i.id === active ? 'on' : undefined}
+              href={i.href}
+              aria-current={i.id === active ? 'page' : undefined}
+            >
+              {i.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+  {withFoot && (
+    <div class="nav-foot">
+      <ThemeToggle />
+      <p class="tiny">
+        <a href={`${SITE.www}/terms/`}>Terms &amp; analytics notice</a>
+      </p>
+    </div>
+  )}
 </nav>

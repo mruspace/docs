@@ -10,16 +10,23 @@ import DocsNav from '../components/DocsNav.astro';
 import Toc from '../components/Toc.astro';
 import type { NavId } from '../data/nav';
 import { metaFor } from '../data/metadata';
+import { buildGraph, type Crumb, type Code } from '../data/jsonld';
+import { cardPath } from '../../scripts/og/card.mjs';
 
 interface Props {
   active: NavId;
   /** Label of the phone menu, e.g. "Concepts › Shrinking quorum". */
   menu: string;
   toc?: { href: string; label: string }[];
+  crumbs?: Crumb[];
+  /** The repository a page documents, for SoftwareSourceCode. */
+  code?: Code;
 }
-const { active, menu, toc } = Astro.props;
+const { active, menu, toc, crumbs, code } = Astro.props;
 const meta = metaFor(Astro.url.pathname);
 const canonical = new URL(Astro.url.pathname, 'https://docs.mru.space').href;
+const ogImage = new URL(cardPath(Astro.url.pathname), 'https://docs.mru.space').href;
+const graph = buildGraph(meta, crumbs, code);
 ---
 
 <!doctype html>
@@ -47,21 +54,47 @@ const canonical = new URL(Astro.url.pathname, 'https://docs.mru.space').href;
     <link rel="icon" type="image/png" href="/assets/favicon-light.png" media="(prefers-color-scheme: light)" />
     <link rel="icon" type="image/png" href="/assets/favicon-dark.png" media="(prefers-color-scheme: dark)" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="alternate" type="text/markdown" href={`${Astro.url.pathname}index.md`} />
+    <meta property="og:type" content={Astro.url.pathname === '/' ? 'website' : 'article'} />
+    <meta property="og:site_name" content="Mru Aerospace" />
+    <meta property="og:title" content={meta.ogTitle} />
+    <meta property="og:description" content={meta.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={meta.ogTitle} />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@mruspace" />
+    <meta name="twitter:creator" content="@mruspace" />
+    <meta name="twitter:title" content={meta.ogTitle} />
+    <meta name="twitter:description" content={meta.description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={meta.ogTitle} />
+    <script type="application/ld+json" set:html={JSON.stringify(graph).replace(/</g, '\\u003c')} />
     <link rel="preload" href="/fonts/jost-500.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/source-serif-4-400.woff2" as="font" type="font/woff2" crossorigin />
     <slot name="head" />
     <Analytics />
   </head>
   <body>
-    <a class="skip" href="#main">Skip to content</a>
+    <a class="skip" href="#main">
+      Skip to content
+    </a>
     <div class="mru">
       <DocsTop />
       <details class="docs-menu">
-        <summary><span>{menu}</span><span aria-hidden="true">+</span></summary>
+        <summary>
+          <span>{menu}</span>
+          <span aria-hidden="true">+</span>
+        </summary>
         <DocsNav active={active} withFoot={false} />
       </details>
       <div class="docs-shell">
-        <aside class="docs-nav"><DocsNav active={active} /></aside>
+        <div class="docs-nav">
+          <DocsNav active={active} />
+        </div>
         <main class="docs-main" id="main" data-pagefind-body>
           <slot />
         </main>
