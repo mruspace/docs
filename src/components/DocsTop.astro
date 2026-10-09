@@ -9,25 +9,50 @@ import { SITE } from '../data/site';
   <div class="bar" style="padding-inline: var(--gut); max-width: 1440px; margin: 0 auto">
     <a class="brand" href="/" aria-label="Mru docs home">
       <MarkSvg />
-      <span>Mru</span><span class="sub">Docs</span>
+      <span>Mru</span>
+      <span class="sub">Docs</span>
     </a>
     <form class="search-form" role="search" action="https://duckduckgo.com/" method="get" data-search>
       <label class="search">
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" style="fill: none; stroke: currentColor; stroke-width: 1.6"
-          ><circle cx="11" cy="11" r="6.5"></circle><line x1="16" y1="16" x2="21" y2="21"></line></svg
+        <svg
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          aria-hidden="true"
+          style="fill: none; stroke: currentColor; stroke-width: 1.6"
         >
-        <span class="sr" style="position: absolute; left: -9999px">Search the docs</span>
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <line x1="16" y1="16" x2="21" y2="21"></line>
+        </svg>
+        <span class="sr" style="position: absolute; left: -9999px">
+          Search the docs
+        </span>
         <input type="search" name="q" placeholder="Search docs" autocomplete="off" aria-controls="search-results" />
         <input type="hidden" name="sites" value="docs.mru.space" />
         <kbd>/</kbd>
       </label>
-      <div class="search-results" id="search-results" role="region" aria-label="Search results" aria-live="polite" hidden></div>
+      <section
+        class="search-results"
+        id="search-results"
+        aria-label="Search results"
+        aria-live="polite"
+        hidden
+      ></section>
+      <button type="submit" class="sr-only">
+        Search
+      </button>
     </form>
     <nav class="nav" aria-label="Docs header" style="flex: 0 1 auto; margin-left: auto">
-      <a class="hide-s" href={SITE.github}>GitHub</a>
-      <a class="hide-s" href={`${SITE.www}/research/`}>Research</a>
+      <a class="hide-s" href={SITE.github}>
+        GitHub
+      </a>
+      <a class="hide-s" href={`${SITE.www}/research/`}>
+        Research
+      </a>
       <a href={`${SITE.www}/`}>mru.space</a>
-      <a class="hide-s" href={`${SITE.www}/contact/`}>Request information</a>
+      <a class="hide-s" href={`${SITE.www}/contact/`}>
+        Request information
+      </a>
     </nav>
   </div>
 </header>

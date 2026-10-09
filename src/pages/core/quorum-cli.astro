@@ -1,16 +1,41 @@
 ---
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Core runtime', href: '/core/quorum-crate/' },
+  { label: 'quorum CLI' },
+];
 ---
 
-<DocsLayout active="cli" menu="Core runtime › quorum CLI" toc={[{"href": "#synopsis", "label": "Synopsis"}, {"href": "#run", "label": "Run settings"}, {"href": "#faults", "label": "Faults"}, {"href": "#limits", "label": "Limits"}, {"href": "#sensor", "label": "Radiation sensor"}, {"href": "#output", "label": "Output"}, {"href": "#opssat", "label": "On OPS-SAT"}]}>
+<DocsLayout
+  crumbs={crumbs}
+  active="cli"
+  menu="Core runtime › quorum CLI"
+  toc={[
+    { href: '#synopsis', label: 'Synopsis' },
+    { href: '#run', label: 'Run settings' },
+    { href: '#faults', label: 'Faults' },
+    { href: '#limits', label: 'Limits' },
+    { href: '#sensor', label: 'Radiation sensor' },
+    { href: '#output', label: 'Output' },
+    { href: '#opssat', label: 'On OPS-SAT' },
+  ]}
+>
   <article class="body">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Docs</a><span aria-hidden="true">/</span><a href="/core/quorum-crate/">Core runtime</a><span aria-hidden="true">/</span><span>quorum CLI</span></nav>
-    <h1>The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> program</h1>
-    <p class="lede">Three replica processes, a voter built on the core, fault injection, and enforced resource limits. It reports what it delivered and what that cost.</p>
+    <Breadcrumbs items={crumbs} />
+    <h1>
+      The <code style="font-size: .8em; background: none; border: 0; padding: 0">quorum</code> program
+    </h1>
+    <p class="lede">
+      Three replica processes, a voter built on the core, fault injection, and enforced resource limits. It reports what
+      it delivered and what that cost.
+    </p>
 
     <h2 id="synopsis">Synopsis</h2>
-    <pre class="pre">quorum [--policy shrink|tmr] [--ticks N] [--seed S]
+    <pre class="pre" tabindex="0">quorum [--policy shrink|tmr] [--ticks N] [--seed S]
    [--upset-rate R] [--common-mode C] [--kat-period P]
    [--fault kill|corrupt|stuck|hang|sensor:I@T] ... [--faults-file F]
    [--max-memory-mb M] [--max-cpu-seconds S] [--cpu-percent P]
@@ -20,54 +45,160 @@ import DocsEnd from '../../components/DocsEnd.astro';
     <p style="margin-top: 16px">An unknown option prints this list. Every run is reproducible from its seed.</p>
 
     <h2 id="run">Run settings</h2>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
-      <tbody>
-        <tr><td class="m">--policy</td><td class="m">shrink</td><td><code>shrink</code> or <code>tmr</code></td></tr>
-        <tr><td class="m">--ticks</td><td class="m">10000</td><td>Results to compute</td></tr>
-        <tr><td class="m">--seed</td><td class="m">1</td><td>Seed for random upsets and where they land</td></tr>
-        <tr><td class="m">--upset-rate</td><td class="m">0</td><td>Chance per replica per tick of a bit flip in working memory</td></tr>
-        <tr><td class="m">--common-mode</td><td class="m">0.05</td><td>Share of single-replica upsets that hit both self-check runs alike</td></tr>
-        <tr><td class="m">--kat-period</td><td class="m">64</td><td>Ticks between known-answer tests on the last replica</td></tr>
-      </tbody>
-    </table></div>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">--policy</td>
+            <td class="m">shrink</td>
+            <td>
+              <code>shrink</code> or <code>tmr</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">--ticks</td>
+            <td class="m">10000</td>
+            <td>Results to compute</td>
+          </tr>
+          <tr>
+            <td class="m">--seed</td>
+            <td class="m">1</td>
+            <td>Seed for random upsets and where they land</td>
+          </tr>
+          <tr>
+            <td class="m">--upset-rate</td>
+            <td class="m">0</td>
+            <td>Chance per replica per tick of a bit flip in working memory</td>
+          </tr>
+          <tr>
+            <td class="m">--common-mode</td>
+            <td class="m">0.05</td>
+            <td>Share of single-replica upsets that hit both self-check runs alike</td>
+          </tr>
+          <tr>
+            <td class="m">--kat-period</td>
+            <td class="m">64</td>
+            <td>Ticks between known-answer tests on the last replica</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="faults">Faults</h2>
-    <p>Schedule a fault as <code>kind:replica@tick</code>. Repeat the option, or read a schedule with <code>--faults-file</code>.</p>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Kind</th><th>What happens</th></tr></thead>
-      <tbody>
-        <tr><td class="m">kill</td><td>The replica process dies.</td></tr>
-        <tr><td class="m">hang</td><td>The replica stops answering. The voter drops it after the reply timeout.</td></tr>
-        <tr><td class="m">stuck</td><td>The replica returns the same wrong value from then on.</td></tr>
-        <tr><td class="m">corrupt</td><td>One bit flips in the replica&#39;s working memory during a computation.</td></tr>
-        <tr><td class="m">sensor</td><td>A flip in the radiation-sensor block, to test logging and repair. Needs <code>--sensor-mb</code>. The replica number is ignored.</td></tr>
-      </tbody>
-    </table></div>
+    <p>
+      Schedule a fault as <code>kind:replica@tick</code>. Repeat the option, or read a schedule with{' '}
+      <code>--faults-file</code>.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Kind</th>
+            <th>What happens</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">kill</td>
+            <td>The replica process dies.</td>
+          </tr>
+          <tr>
+            <td class="m">hang</td>
+            <td>The replica stops answering. The voter drops it after the reply timeout.</td>
+          </tr>
+          <tr>
+            <td class="m">stuck</td>
+            <td>The replica returns the same wrong value from then on.</td>
+          </tr>
+          <tr>
+            <td class="m">corrupt</td>
+            <td>One bit flips in the replica&#39;s working memory during a computation.</td>
+          </tr>
+          <tr>
+            <td class="m">sensor</td>
+            <td>
+              A flip in the radiation-sensor block, to test logging and repair. Needs <code>--sensor-mb</code>. The
+              replica number is ignored.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="limits">Limits</h2>
-    <p>Safe on shared hardware. Each process enforces its own memory and CPU-time limits. The voter enforces the CPU share and the run time.</p>
-    <div class="tbl-box"><table class="tbl">
-      <thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead>
-      <tbody>
-        <tr><td class="m">--max-memory-mb</td><td class="m">128</td><td>Memory limit per process (Linux only)</td></tr>
-        <tr><td class="m">--max-cpu-seconds</td><td class="m">off</td><td>CPU-time limit per process</td></tr>
-        <tr><td class="m">--cpu-percent</td><td class="m">off</td><td>Cap on the voter&#39;s CPU share</td></tr>
-        <tr><td class="m">--max-seconds</td><td class="m">off</td><td>Maximum run time</td></tr>
-        <tr><td class="m">--reply-timeout-ms</td><td class="m">2000</td><td>Drop a replica that does not answer in time</td></tr>
-      </tbody>
-    </table></div>
+    <p>
+      Safe on shared hardware. Each process enforces its own memory and CPU-time limits. The voter enforces the CPU
+      share and the run time.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">--max-memory-mb</td>
+            <td class="m">128</td>
+            <td>Memory limit per process (Linux only)</td>
+          </tr>
+          <tr>
+            <td class="m">--max-cpu-seconds</td>
+            <td class="m">off</td>
+            <td>CPU-time limit per process</td>
+          </tr>
+          <tr>
+            <td class="m">--cpu-percent</td>
+            <td class="m">off</td>
+            <td>Cap on the voter&#39;s CPU share</td>
+          </tr>
+          <tr>
+            <td class="m">--max-seconds</td>
+            <td class="m">off</td>
+            <td>Maximum run time</td>
+          </tr>
+          <tr>
+            <td class="m">--reply-timeout-ms</td>
+            <td class="m">2000</td>
+            <td>Drop a replica that does not answer in time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <h2 id="sensor">Radiation sensor</h2>
-    <p><code>--sensor-mb M</code> holds M MB of memory in a known pattern and checks it every <code>--sensor-every</code> ticks (default 1000). Every flipped bit is logged with its location, then repaired. On flight hardware, this measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>.</p>
+    <p>
+      <code>--sensor-mb M</code> holds M MB of memory in a known pattern and checks it every <code>--sensor-every</code>{' '}
+      ticks (default 1000). Every flipped bit is logged with its location, then repaired. On flight hardware, this
+      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>.
+    </p>
 
     <h2 id="output">Output</h2>
-    <p><code>--log file.csv</code> writes every event: stuck, hang, lost, retired, cleared, killed, detected, wrong, stopped, halted and sensor flips. <code>--progress-every N</code> adds running totals. <code>--summary file.txt</code> writes the final report for downlink.</p>
-    <pre class="pre">quorum --policy shrink ...  <span class="s">useful=14490</span> detected=10 wrong=0 halted_at=never</pre>
+    <p>
+      <code>--log file.csv</code> writes every event: stuck, hang, lost, retired, cleared, killed, detected, wrong,
+      stopped, halted and sensor flips. <code>--progress-every N</code> adds running totals.{' '}
+      <code>--summary file.txt</code> writes the final report for downlink.
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    >quorum --policy shrink ...  <span class="s">useful=14490</span> detected=10 wrong=0 halted_at=never</pre>
 
     <h2 id="opssat">On OPS-SAT</h2>
-    <p><code>opssat/run.sh</code> starts, checks and stops a run with all limits set. Tagged releases ship each static Linux binary (three ARM, one x86_64) with the launcher, a sample fault schedule and the operations note.</p>
+    <p>
+      <code>opssat/run.sh</code> starts, checks and stops a run with all limits set. Tagged releases ship each static
+      Linux binary (three ARM, one x86_64) with the launcher, a sample fault schedule and the operations note.
+    </p>
     <DocsEnd />
   </article>
-
 </DocsLayout>

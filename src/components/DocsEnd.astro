@@ -13,38 +13,34 @@ const next = PAGES[i + 1];
 ---
 
 <div class="prevnext" style="margin-top: 56px">
-  {
-    prev ? (
-      <a href={prev.path}>
-        <span class="tiny">Previous</span>
-        <span class="h4" style="display: block; font-family: var(--display)">
-          {prev.short}
-        </span>
-      </a>
-    ) : (
-      <span />
-    )
-  }
-  {
-    next ? (
-      <a href={next.path} style="text-align: right">
-        <span class="tiny">Next</span>
-        <span class="h4" style="display: block; font-family: var(--display)">
-          {next.short}
-        </span>
-      </a>
-    ) : (
-      <a href="/" style="text-align: right">
-        <span class="tiny">Back to</span>
-        <span class="h4" style="display: block; font-family: var(--display)">
-          Overview
-        </span>
-      </a>
-    )
-  }
+  {prev ? (
+    <a href={prev.path}>
+      <span class="tiny">Previous</span>
+      <span class="h4" style="display: block; font-family: var(--display)">
+        {prev.short}
+      </span>
+    </a>
+  ) : (
+    <span />
+  )}
+  {next ? (
+    <a href={next.path} style="text-align: right">
+      <span class="tiny">Next</span>
+      <span class="h4" style="display: block; font-family: var(--display)">
+        {next.short}
+      </span>
+    </a>
+  ) : (
+    <a href="/" style="text-align: right">
+      <span class="tiny">Back to</span>
+      <span class="h4" style="display: block; font-family: var(--display)">
+        Overview
+      </span>
+    </a>
+  )}
 </div>
 <p class="tiny" style="margin-top: 32px">
-  Updated {page.updated}{page.source && ` · Source: ${page.source}`} · <a href={`${SITE.repo}/edit/main/${page.file}`}
-    >Edit on GitHub</a
-  > · <a href={`${SITE.www}/contact/`}>Questions? Request information</a>
+  Updated {page.updated}
+  {page.source && ` · Source: ${page.source}`} · <a href={`${SITE.repo}/edit/main/${page.file}`}>Edit on GitHub</a> ·{' '}
+  <a href={`${SITE.www}/contact/`}>Questions? Request information</a>
 </p>

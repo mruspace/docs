@@ -10,15 +10,13 @@ const { items } = Astro.props;
 <aside class="docs-toc" aria-label="On this page">
   <h4>On this page</h4>
   <ul data-toc>
-    {
-      items.map((t, i) => (
-        <li>
-          <a class={i === 0 ? 'on' : undefined} href={t.href}>
-            {t.label}
-          </a>
-        </li>
-      ))
-    }
+    {items.map((t, i) => (
+      <li>
+        <a class={i === 0 ? 'on' : undefined} href={t.href}>
+          {t.label}
+        </a>
+      </li>
+    ))}
   </ul>
 </aside>
 
