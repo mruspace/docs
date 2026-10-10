@@ -48,15 +48,21 @@ const crumbs = [
 quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.1.1"</span> {'}'}</pre>
 
     <h2 id="example">Example</h2>
-    <pre class="pre" tabindex="0"><span class="k">use</span> quorum::{'{'}decide, Health, Outcome, Policy, Reply{'}'};
+    <pre
+      class="pre"
+      tabindex="0"
+    ><span class="k">use</span> quorum::{'{'}decide, Health, Outcome, Policy, Reply, REPLICAS{'}'};
 
+<span class="c">// read_replicas, send and run_known_answer_test are your code.</span>
 <span class="k">let mut</span> health = Health::new();
-<span class="k">let</span> replies = [Reply::Single(42), Reply::Single(42), Reply::Single(7)];
-<span class="k">let</span> v = decide(Policy::Shrink, &amp;replies);
+<span class="k">for</span> tick <span class="k">in</span> 0u64.. {'{'}
+    <span class="k">let</span> replies: [Reply; REPLICAS] = read_replicas(tick);
+    <span class="k">let</span> v = decide(Policy::Shrink, &amp;replies);
 
-<span class="k">if let</span> <span class="s">Outcome::Deliver</span>(x) = v.outcome {'{'} send(x); {'}'}
-<span class="k">for</span> (i, outvoted) <span class="k">in</span> v.dissent.iter().enumerate() {'{'}
-<span class="k">if</span> *outvoted &amp;&amp; health.strike(i, tick) {'{'} run_known_answer_test(i); {'}'}
+    <span class="k">if let</span> <span class="s">Outcome::Deliver</span>(x) = v.outcome {'{'} send(x); {'}'}
+    <span class="k">for</span> (i, outvoted) <span class="k">in</span> v.dissent.iter().enumerate() {'{'}
+        <span class="k">if</span> *outvoted &amp;&amp; health.strike(i, tick) {'{'} run_known_answer_test(i); {'}'}
+    {'}'}
 {'}'}</pre>
 
     <h2 id="api">API</h2>

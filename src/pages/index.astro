@@ -52,21 +52,25 @@ import DocsLayout from '../layouts/DocsLayout.astro';
     </div>
 
     <h2 id="quickstart">Quickstart</h2>
-    <p>
-      You need a Rust toolchain. Clone the runtime, run its tests, then run the demo with a stuck replica and a dead
-      one.
-    </p>
+    <p>You need a Rust toolchain. Clone the runtime, run its tests, then run the demo with two replicas killed.</p>
     <pre class="pre" tabindex="0"><span class="c"># the runtime and its demo</span>
 git clone https://github.com/mruspace/flight
 <span class="k">cd</span> flight
 cargo test --workspace
 cargo run --release -- --policy shrink --ticks 20000 --seed 1 \
-  --upset-rate 0.001 --fault stuck:1@4000 --fault kill:0@9000</pre>
+  --upset-rate 0.001 --fault kill:0@5000 --fault kill:1@10000</pre>
     <p style="margin-top: 16px">
       Run the same seed with <code>--policy tmr</code> to compare:
     </p>
-    <pre class="pre" tabindex="0">quorum --policy tmr    ...  useful=8993  detected=11007 wrong=0 halted_at=never
-quorum --policy shrink ...  <span class="s">useful=14490</span> detected=10    wrong=0 halted_at=never</pre>
+    <pre
+      class="pre"
+      tabindex="0"
+    >quorum --policy tmr    ...  useful=9990  detected=9  wrong=0 <span class="s">halted_at=10000</span>
+quorum --policy shrink ...  <span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never</pre>
+    <p style="margin-top: 16px">
+      Fixed TMR halts at tick 10000, when the second replica dies. The shrinking quorum keeps running on the last
+      replica, which checks its own work.
+    </p>
     <p style="margin-top: 16px">Then the simulator, which needs no dependencies:</p>
     <pre class="pre" tabindex="0">git clone https://github.com/mruspace/dusk
 <span class="k">cd</span> dusk
@@ -91,7 +95,7 @@ cargo run --release -- --sweep   <span class="c"># sensitivity, about 30 s</span
             </td>
             <td>Decision core and demo program</td>
             <td>Rust</td>
-            <td class="m">v0.1.1 · TRL 3</td>
+            <td class="m">v0.1.1</td>
           </tr>
           <tr>
             <td class="m">
@@ -99,7 +103,7 @@ cargo run --release -- --sweep   <span class="c"># sensitivity, about 30 s</span
             </td>
             <td>Redundancy Monte Carlo</td>
             <td>Rust</td>
-            <td class="m">0.1.0 · TRL 3–4</td>
+            <td class="m">0.1.0</td>
           </tr>
           <tr>
             <td class="m">
