@@ -14,14 +14,12 @@ import { cardPath } from '../../scripts/og/card.mjs';
 
 interface Props {
   active: NavId;
-  /** Label of the phone menu, e.g. "Concepts › Shrinking quorum". */
-  menu: string;
   toc?: { href: string; label: string }[];
   crumbs?: Crumb[];
   /** The repository a page documents, for SoftwareSourceCode. */
   code?: Code;
 }
-const { active, menu, toc, crumbs, code } = Astro.props;
+const { active, toc, crumbs, code } = Astro.props;
 const meta = metaFor(Astro.url.pathname);
 const canonical = new URL(Astro.url.pathname, 'https://docs.mru.space').href;
 const ogImage = new URL(cardPath(Astro.url.pathname), 'https://docs.mru.space').href;
@@ -82,14 +80,7 @@ const graph = buildGraph(meta, crumbs, code);
       Skip to content
     </a>
     <div class="mru">
-      <DocsTop />
-      <details class="docs-menu">
-        <summary>
-          <span>{menu}</span>
-          <span aria-hidden="true">+</span>
-        </summary>
-        <DocsNav active={active} withFoot={false} />
-      </details>
+      <DocsTop active={active} />
       <div class="docs-shell">
         <div class="docs-nav">
           <DocsNav active={active} />

@@ -133,16 +133,44 @@
   top: calc(1cap * 5 / 32);
 }
 
-/* The GIF starts at once (DocsTop.astro), so the static stand-in is not
-   shown first: the slot stays empty until the GIF has loaded. */
-.docs-top .mark-anim .mark-wait {
-  display: none;
-}
-
 /* Tablets (no canvas artboard): the top bar keeps search and "Mru Aerospace" and
    drops the three links it also drops on phones, so it does not overflow. */
 @container (min-width: 641px) and (max-width: 920px) {
   .docs-top .hide-s {
     display: none;
+  }
+}
+
+/* Phones: the Menu button from mru.space sits at the right of the top bar,
+   and the menu holds the docs nav, then the header links. The bar is a grid
+   with a fixed 64 px first row, so the brand stays centred on it when the
+   menu opens on the row below. (In a wrapping flex bar, the row would shrink
+   to the trimmed brand and push the mark off the top.) The open button stays
+   where it was (shared rules in mru.css). */
+@container (max-width: 640px) {
+  .docs-top .bar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: 64px;
+    gap: 0 24px;
+  }
+  .docs-top .brand {
+    justify-self: start;
+  }
+  .docs-top .menu-toggle {
+    align-self: center;
+  }
+  .docs-top .menu-toggle[open] {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+  /* Open, the button is taken out of the row (mru.css); keep it centred on
+     the 64 px row, where it sat closed. */
+  .docs-top .menu-toggle[open] summary {
+    top: 32px;
+    translate: 0 -50%;
+  }
+  .docs-menu-panel .navlist {
+    padding-bottom: 8px;
   }
 }

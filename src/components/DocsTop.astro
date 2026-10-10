@@ -1,14 +1,57 @@
 ---
 // Docs top bar (DocsTop artboard). Search: with JS, Pagefind results open
 // under the field; without JS, the form searches the site with DuckDuckGo.
-import Mark from './Mark.astro';
+// On phones the bar shows the brand and a Menu button, as on mru.space; the
+// menu holds the docs nav and the header links.
+import MarkSvg from './MarkSvg.astro';
+import DocsNav from './DocsNav.astro';
 import { SITE } from '../data/site';
+import type { NavId } from '../data/nav';
+
+interface Props {
+  active: NavId;
+}
+const { active } = Astro.props;
+// The header links. Below 920 px only "Mru Aerospace" stays in the bar.
+const links = [
+  { label: 'GitHub', href: SITE.github },
+  { label: 'Research', href: `${SITE.www}/research/` },
+  { label: 'Mru Aerospace', href: `${SITE.www}/`, keep: true },
+  { label: 'Get in touch', href: `${SITE.www}/contact/` },
+];
 ---
 
 <header class="mru part docs-top">
   <div class="bar" style="padding-inline: var(--gut); max-width: 1440px; margin: 0 auto">
     <a class="brand" href="/" aria-label="Mru docs home">
-      <Mark alt="" />
+      {/* The animated mark, as Mark.astro draws it, but from the 96 px copies
+          (mru-96.gif, about 140 KB, sharp at 2x) in place of the 2 MB
+          originals, which would hold up the page text on a slow link. */}
+      <span class="mark-anim">
+        <picture>
+          <img
+            class="on-light"
+            src="/assets/mru-light-96.gif"
+            alt=""
+            width="96"
+            height="96"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+          />
+          <img
+            class="on-dark"
+            src="/assets/mru-96.gif"
+            alt=""
+            width="96"
+            height="96"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+          />
+        </picture>
+      </span>
+      <MarkSvg class="mark-static" />
       <span class="word">Mru</span>
       <span class="sub">Docs</span>
     </a>
@@ -43,17 +86,23 @@ import { SITE } from '../data/site';
       </button>
     </form>
     <nav class="nav" aria-label="Docs header" style="flex: 0 1 auto; margin-left: auto">
-      <a class="hide-s" href={SITE.github}>
-        GitHub
-      </a>
-      <a class="hide-s" href={`${SITE.www}/research/`}>
-        Research
-      </a>
-      <a href={`${SITE.www}/`}>Mru Aerospace</a>
-      <a class="hide-s" href={`${SITE.www}/contact/`}>
-        Get in touch
-      </a>
+      {links.map((l) => (
+        <a class={l.keep ? undefined : 'hide-s'} href={l.href}>
+          {l.label}
+        </a>
+      ))}
     </nav>
+    <details class="menu-toggle">
+      <summary aria-label="Open menu">Menu</summary>
+      <div class="docs-menu-panel">
+        <DocsNav active={active} withFoot={false} />
+        <nav class="menu-panel" aria-label="Mru, small screens">
+          {links.map((l) => (
+            <a href={l.href}>{l.label}</a>
+          ))}
+        </nav>
+      </div>
+    </details>
   </div>
 </header>
 
@@ -61,15 +110,12 @@ import { SITE } from '../data/site';
   import { initSearch } from '../scripts/search';
   initSearch();
 
-  // Start the header GIF at once. Mark.astro waits for the largest paint and
-  // shows the static mark until then; the docs show only the GIF. The header
-  // takes the 96 px copy (mru-96.gif, about 140 KB, sharp at 2x): the 600 px
-  // original is 2 MB and would hold up the page text on a slow link. The
-  // image the theme hides stays lazy, so it is never fetched.
-  for (const img of document.querySelectorAll<HTMLImageElement>('.docs-top .mark-anim img[data-src]')) {
-    img.addEventListener('load', () => img.closest('.mark-anim')?.classList.add('playing'), { once: true });
-    img.fetchPriority = 'low';
-    img.src = img.dataset.src!.replace(/\.gif$/, '-96.gif');
-    img.removeAttribute('data-src');
+  // Show the header GIF once it has loaded (as Mark.astro does), so a slow
+  // or failed load shows an empty space, never a broken-image icon. Only the
+  // image the theme shows gets a layout box, so the other is never fetched.
+  for (const img of document.querySelectorAll<HTMLImageElement>('.docs-top .mark-anim img')) {
+    const play = () => img.closest('.mark-anim')?.classList.add('playing');
+    if (img.complete && img.naturalWidth > 0) play();
+    else img.addEventListener('load', play, { once: true });
   }
 </script>
