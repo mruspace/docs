@@ -72,25 +72,54 @@
   color: var(--ink-soft);
 }
 
-/* Theme toggle and terms link at the foot of the docs nav. */
+/* Terms link and theme toggle at the foot of the docs nav, set like the
+   legal line in the mru.space footer. The nav's link padding does not apply. */
 .nav-foot {
   margin-top: 32px;
   padding-top: 16px;
   border-top: 1px solid var(--rule);
-  display: grid;
-  gap: 12px;
 }
-.nav-foot .tiny {
-  margin: 0;
-}
-.nav-foot .tiny a {
+.nav-foot a {
   display: inline;
   padding: 0;
   margin: 0;
   color: var(--ink-faint);
+  text-decoration: underline;
+}
+.nav-foot a:hover {
+  color: var(--ink);
+  background: none;
 }
 
-/* Tablets (no canvas artboard): the top bar keeps search and "mru.space" and
+/* The brand, as in the mru.space header. Both words' boxes are trimmed to
+   their capital height, so the brand's box is the capitals of "Mru", and the
+   bar centres them. "Docs" is centred on those capitals, and the mark sits
+   outside the flow, centred on them too. The 48 px slot holds the 48 px GIF
+   or the 43 px static mark. */
+.docs-top .brand {
+  position: relative;
+  align-items: baseline;
+  padding-left: 58px;
+}
+.docs-top .brand > .word,
+.docs-top .brand > .sub {
+  text-box: trim-both cap alphabetic;
+}
+.docs-top .brand > .sub {
+  align-self: center;
+}
+.docs-top .brand > .mark-anim {
+  position: absolute;
+  left: 0;
+  top: calc(50% - 24px);
+}
+.docs-top .brand > .mark-static {
+  position: absolute;
+  left: 2.5px;
+  top: calc(50% - 21.5px);
+}
+
+/* Tablets (no canvas artboard): the top bar keeps search and "Mru Aerospace" and
    drops the three links it also drops on phones, so it does not overflow. */
 @container (min-width: 641px) and (max-width: 920px) {
   .docs-top .hide-s {

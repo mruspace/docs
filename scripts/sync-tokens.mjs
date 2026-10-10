@@ -15,7 +15,10 @@ const FILES = [
   ['src/styles/mru.css', 'src/styles/shared/mru.css'],
   ['src/styles/site.css', 'src/styles/shared/site.css'],
   // Shared components, at the same paths so their imports resolve.
-  ...['MarkSvg', 'ThemeToggle', 'Analytics'].map((c) => [`src/components/${c}.astro`, `src/components/${c}.astro`]),
+  ...['Mark', 'MarkSvg', 'ThemeToggle', 'Analytics'].map((c) => [
+    `src/components/${c}.astro`,
+    `src/components/${c}.astro`,
+  ]),
   ['src/scripts/theme.ts', 'src/scripts/theme.ts'],
   ['src/components/Breadcrumbs.astro', 'src/components/Breadcrumbs.astro'],
   // Shared build scripts: share cards, Markdown twins and llms files, checks.
@@ -41,6 +44,8 @@ const FILES = [
     'ibm-plex-mono-500',
   ].map((f) => [`public/fonts/${f}.woff2`, `public/fonts/${f}.woff2`]),
   ...['jost', 'sourceserif4', 'ibmplexmono'].map((f) => [`public/fonts/OFL-${f}.txt`, `public/fonts/OFL-${f}.txt`]),
+  // The animated mark in the header (Mark.astro).
+  ...['mru', 'mru-light'].map((f) => [`public/assets/${f}.gif`, `public/assets/${f}.gif`]),
 ];
 
 const check = process.argv.includes('--check');
