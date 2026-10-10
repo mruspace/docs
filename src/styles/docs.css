@@ -133,6 +133,33 @@
   top: calc(1cap * 5 / 32);
 }
 
+/* The docs footer: the beacon and MET from the mru.space footer, on the
+   header's width and gutter. The footer carries the rule, not the beacon. */
+.docs-foot {
+  border-top: 1px solid var(--rule);
+}
+.docs-foot .beacon {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px var(--gut);
+  border-top: 0;
+}
+
+/* Previous and next sit side by side, next on the right. On phones they
+   stack (mru.css), so next moves to the left edge, under previous, and the
+   empty cell on the first page goes. */
+.prevnext .next {
+  text-align: right;
+}
+@container (max-width: 640px) {
+  .prevnext .next {
+    text-align: left;
+  }
+  .prevnext > span:empty {
+    display: none;
+  }
+}
+
 /* Tablets (no canvas artboard): the top bar keeps search and "Mru Aerospace" and
    drops the three links it also drops on phones, so it does not overflow. */
 @container (min-width: 641px) and (max-width: 920px) {

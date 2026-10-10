@@ -5,6 +5,7 @@ import '../styles/shared/site.css';
 import '../styles/docs.css';
 import Analytics from '../components/Analytics.astro';
 import DocsTop from '../components/DocsTop.astro';
+import DocsFoot from '../components/DocsFoot.astro';
 import DocsNav from '../components/DocsNav.astro';
 import Toc from '../components/Toc.astro';
 import type { NavId } from '../data/nav';
@@ -90,6 +91,7 @@ const graph = buildGraph(meta, crumbs, code);
         </main>
         {toc && <Toc items={toc} />}
       </div>
+      <DocsFoot />
     </div>
   </body>
 </html>

@@ -24,14 +24,14 @@ const next = PAGES[i + 1];
     <span />
   )}
   {next ? (
-    <a href={next.path} style="text-align: right">
+    <a href={next.path} class="next">
       <span class="tiny">Next</span>
       <span class="h4" style="display: block; font-family: var(--display)">
         {next.short}
       </span>
     </a>
   ) : (
-    <a href="/" style="text-align: right">
+    <a href="/" class="next">
       <span class="tiny">Back to</span>
       <span class="h4" style="display: block; font-family: var(--display)">
         Overview
