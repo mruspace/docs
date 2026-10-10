@@ -60,4 +60,16 @@ import { SITE } from '../data/site';
 <script>
   import { initSearch } from '../scripts/search';
   initSearch();
+
+  // Start the header GIF at once. Mark.astro waits for the largest paint and
+  // shows the static mark until then; the docs show only the GIF. The header
+  // takes the 96 px copy (mru-96.gif, about 140 KB, sharp at 2x): the 600 px
+  // original is 2 MB and would hold up the page text on a slow link. The
+  // image the theme hides stays lazy, so it is never fetched.
+  for (const img of document.querySelectorAll<HTMLImageElement>('.docs-top .mark-anim img[data-src]')) {
+    img.addEventListener('load', () => img.closest('.mark-anim')?.classList.add('playing'), { once: true });
+    img.fetchPriority = 'low';
+    img.src = img.dataset.src!.replace(/\.gif$/, '-96.gif');
+    img.removeAttribute('data-src');
+  }
 </script>
