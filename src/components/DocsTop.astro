@@ -1,15 +1,15 @@
 ---
 // Docs top bar (DocsTop artboard). Search: with JS, Pagefind results open
 // under the field; without JS, the form searches the site with DuckDuckGo.
-import MarkSvg from './MarkSvg.astro';
+import Mark from './Mark.astro';
 import { SITE } from '../data/site';
 ---
 
 <header class="mru part docs-top">
   <div class="bar" style="padding-inline: var(--gut); max-width: 1440px; margin: 0 auto">
     <a class="brand" href="/" aria-label="Mru docs home">
-      <MarkSvg />
-      <span>Mru</span>
+      <Mark alt="" />
+      <span class="word">Mru</span>
       <span class="sub">Docs</span>
     </a>
     <form class="search-form" role="search" action="https://duckduckgo.com/" method="get" data-search>
@@ -49,9 +49,9 @@ import { SITE } from '../data/site';
       <a class="hide-s" href={`${SITE.www}/research/`}>
         Research
       </a>
-      <a href={`${SITE.www}/`}>mru.space</a>
+      <a href={`${SITE.www}/`}>Mru Aerospace</a>
       <a class="hide-s" href={`${SITE.www}/contact/`}>
-        Request information
+        Get in touch
       </a>
     </nav>
   </div>
