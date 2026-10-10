@@ -7,7 +7,7 @@ import { SITE } from '../data/site';
 
 interface Props {
   active: NavId;
-  /** The copy inside the phone menu repeats the nav; only one carries the toggle. */
+  /** The copy inside the phone menu repeats the nav; its foot is in DocsTop, after the header links. */
   withFoot?: boolean;
 }
 const { active, withFoot = true } = Astro.props;

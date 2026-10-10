@@ -79,8 +79,8 @@ test.describe('interactive', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await offline(page);
     await page.goto('/core/quorum-crate/');
-    await page.click('.docs-menu summary');
-    await expect(page.locator('.docs-menu .navlist a').first()).toBeVisible();
+    await page.click('.docs-top .menu-toggle summary');
+    await expect(page.locator('.docs-top .menu-toggle .navlist a').first()).toBeVisible();
   });
 
   test('without JS, search falls back to a site search form', async ({ browser }) => {
