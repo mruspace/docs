@@ -2,9 +2,11 @@
 // Docs top bar (DocsTop artboard). Search: with JS, Pagefind results open
 // under the field; without JS, the form searches the site with DuckDuckGo.
 // On phones the bar shows the brand and a Menu button, as on mru.space; the
-// menu holds the docs nav and the header links.
+// menu holds the docs nav, the header links, then the terms link and the
+// theme toggle (the sidebar's foot, which phones do not show).
 import MarkSvg from './MarkSvg.astro';
 import DocsNav from './DocsNav.astro';
+import ThemeToggle from './ThemeToggle.astro';
 import { SITE } from '../data/site';
 import type { NavId } from '../data/nav';
 
@@ -101,6 +103,14 @@ const links = [
             <a href={l.href}>{l.label}</a>
           ))}
         </nav>
+        <div class="nav-foot legal">
+          <span>
+            <a href={`${SITE.www}/terms/`}>Terms &amp; analytics notice</a>
+          </span>
+          <span>
+            <ThemeToggle />
+          </span>
+        </div>
       </div>
     </details>
   </div>

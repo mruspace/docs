@@ -142,11 +142,12 @@
 }
 
 /* Phones: the Menu button from mru.space sits at the right of the top bar,
-   and the menu holds the docs nav, then the header links. The bar is a grid
+   and the menu holds the docs nav, the header links, then the terms link
+   and the theme toggle. The bar is a grid
    with a fixed 64 px first row, so the brand stays centred on it when the
    menu opens on the row below. (In a wrapping flex bar, the row would shrink
-   to the trimmed brand and push the mark off the top.) The open button stays
-   where it was (shared rules in mru.css). */
+   to the trimmed brand and push the mark off the top.) The open menu's row
+   and the button's place are shared rules in mru.css. */
 @container (max-width: 640px) {
   .docs-top .bar {
     display: grid;
@@ -160,17 +161,13 @@
   .docs-top .menu-toggle {
     align-self: center;
   }
-  .docs-top .menu-toggle[open] {
-    grid-row: 2;
-    grid-column: 1 / -1;
-  }
-  /* Open, the button is taken out of the row (mru.css); keep it centred on
-     the 64 px row, where it sat closed. */
-  .docs-top .menu-toggle[open] summary {
-    top: 32px;
-    translate: 0 -50%;
-  }
   .docs-menu-panel .navlist {
     padding-bottom: 8px;
+  }
+  /* The last header link's rule already sits above the foot. */
+  .docs-menu-panel .nav-foot {
+    margin-top: 0;
+    padding: 0 0 24px;
+    border-top: 0;
   }
 }
