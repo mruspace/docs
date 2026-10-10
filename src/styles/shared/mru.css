@@ -213,15 +213,15 @@
   color: var(--signal);
 }
 .h-hero {
-  font-size: clamp(56px, 9.2cqi, 132px);
+  font-size: clamp(36px, 4.6cqi, 66px);
   line-height: 0.96;
   letter-spacing: -0.01em;
 }
 .h1 {
-  font-size: clamp(39px, 5.4cqi, 81px);
+  font-size: clamp(32px, 3.6cqi, 48px);
 }
 .h2 {
-  font-size: clamp(31px, 3.6cqi, 50px);
+  font-size: clamp(26px, 2.6cqi, 36px);
 }
 .h3 {
   font-size: var(--s2);
@@ -279,11 +279,27 @@
   position: relative;
   z-index: 2;
 }
+/* The word "Mru" (24 px) and the nav links (16 px) share one baseline. A
+   baseline row sits at the top of a flex line, so the bar wraps and centres
+   its line instead. The mark, the button and the menu stay centred. */
 .site-header .bar {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: baseline;
   gap: 32px;
   min-height: 72px;
+}
+.site-header .bar > .cta,
+.site-header .bar > .menu-toggle {
+  align-self: center;
+}
+.site-header .brand {
+  align-items: baseline;
+}
+.site-header .brand > .mark-anim,
+.site-header .brand > .mark-static {
+  align-self: center;
 }
 .brand {
   display: inline-flex;
@@ -318,11 +334,6 @@
 }
 .nav a.on {
   box-shadow: inset 0 -2px 0 var(--signal);
-}
-.nav .ext::after {
-  content: ' \2197';
-  font-size: 0.8em;
-  color: var(--ink-faint);
 }
 .menu-toggle {
   display: none;
@@ -405,6 +416,28 @@
 }
 .link-more:hover {
   border-color: var(--signal);
+}
+
+/* Note: a small ruled card with a label, a heading, a few lines and an
+   optional link. Cards in one row stretch to the same height, and the link
+   sits at the bottom, so the links in a row line up. */
+.note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  border-top: 1px solid var(--rule-strong);
+  padding-top: 16px;
+}
+.note.lead {
+  border-top-color: var(--signal);
+}
+.note > * {
+  margin: 0;
+}
+.note > .link-more {
+  margin-top: auto;
+  padding-top: 12px;
 }
 
 /* The mark */
@@ -527,6 +560,28 @@
 .descent .tick {
   stroke: var(--rule-strong);
 }
+/* One "three" descent per width (Descent.astro): l above 1040 px, m on
+   tablets, s on phones. */
+.descent.m,
+.descent.s {
+  display: none;
+}
+@container (max-width: 1040px) {
+  .descent.l {
+    display: none;
+  }
+  .descent.m {
+    display: block;
+  }
+}
+@container (max-width: 520px) {
+  .descent.m {
+    display: none;
+  }
+  .descent.s {
+    display: block;
+  }
+}
 
 /* Seams: the orbit glyph on a rule, tilted 58 degrees */
 .seam {
@@ -635,6 +690,7 @@
 }
 .plate .no {
   position: absolute;
+  z-index: 1;
   left: 12px;
   top: 10px;
   font-family: var(--mono);
@@ -939,9 +995,13 @@
   color: var(--ink-soft);
   font-size: 17px;
 }
+/* The tint bleeds 12 px past the rules on both sides, so the text stays in
+   line with the other layers. */
 .stratum.base {
   background: var(--signal-soft);
-  padding-inline: 12px;
+  box-shadow:
+    -12px 0 0 var(--signal-soft),
+    12px 0 0 var(--signal-soft);
 }
 
 /* Tables */
@@ -1299,12 +1359,14 @@
   border-radius: 50%;
   background: var(--signal);
   box-shadow: 0 0 0 0 var(--signal-soft);
-  animation: beacon 6s ease-in-out infinite;
+  animation: beacon 0.5s ease-out infinite;
   flex: none;
 }
 .beacon .msg {
-  font-family: var(--serif);
-  font-style: italic;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
 }
 .legal {
@@ -1319,16 +1381,19 @@
 .legal a {
   color: var(--ink-faint);
 }
+/* Two flashes a second: each starts on a tick of the MET counter (the
+   footer script sets the delay), then fades. */
 @keyframes beacon {
-  0%,
-  88%,
-  100% {
-    opacity: 0.35;
+  0% {
+    opacity: 1;
     box-shadow: 0 0 0 0 var(--signal-soft);
   }
-  92% {
-    opacity: 1;
-    box-shadow: 0 0 0 10px var(--signal-soft);
+  40% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  40%,
+  100% {
+    opacity: 0.35;
   }
 }
 
@@ -1846,6 +1911,10 @@
 .form {
   display: grid;
   gap: 20px;
+}
+/* After a send, the script hides the form; "display: grid" would undo that. */
+.form[hidden] {
+  display: none;
 }
 .form-row {
   display: grid;
