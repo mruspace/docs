@@ -39,7 +39,7 @@ export const NAV: NavGroup[] = [
       { id: 'dfp', label: 'Degradation-first', href: '/concepts/shrinking-quorum/' },
       { id: 'quorum', label: 'Shrinking quorum', href: '/concepts/shrinking-quorum/' },
       { id: 'gdi', label: 'Graceful Degradation Index', href: '/concepts/shrinking-quorum/#gdi' },
-      { id: 'layers', label: 'Layers 0 to 5', href: `${SITE.www}/how-it-works/` },
+      { id: 'layers', label: 'Layers 0 to 5', href: `${SITE.www}/architecture/` },
     ],
   },
   {
