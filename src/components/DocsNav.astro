@@ -33,11 +33,13 @@ const { active, withFoot = true } = Astro.props;
     </>
   ))}
   {withFoot && (
-    <div class="nav-foot">
-      <ThemeToggle />
-      <p class="tiny">
+    <div class="nav-foot legal">
+      <span>
         <a href={`${SITE.www}/terms/`}>Terms &amp; analytics notice</a>
-      </p>
+      </span>
+      <span>
+        <ThemeToggle />
+      </span>
     </div>
   )}
 </nav>

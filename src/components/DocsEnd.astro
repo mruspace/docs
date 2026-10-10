@@ -1,6 +1,6 @@
 ---
 // The end of every docs page: previous / next, then "Updated", the source,
-// "Edit on GitHub" and "Questions? Request information".
+// "Edit on GitHub" and "Questions? Get in touch".
 import { PAGES } from '../data/nav';
 import { SITE } from '../data/site';
 
@@ -42,5 +42,5 @@ const next = PAGES[i + 1];
 <p class="tiny" style="margin-top: 32px">
   Updated {page.updated}
   {page.source && ` · Source: ${page.source}`} · <a href={`${SITE.repo}/edit/main/${page.file}`}>Edit on GitHub</a> ·{' '}
-  <a href={`${SITE.www}/contact/`}>Questions? Request information</a>
+  <a href={`${SITE.www}/contact/`}>Questions? Get in touch</a>
 </p>

@@ -14,7 +14,7 @@ Documentation for Mru's open core: the shrinking-quorum runtime
 ([mruspace/dusk](https://github.com/mruspace/dusk)) and Mru 2049
 ([mruspace/2049](https://github.com/mruspace/2049)).
 
-Questions: [Request information](https://mru.space/contact/) or
+Questions: [Get in touch](https://mru.space/contact/) or
 [contact@mru.space](mailto:contact@mru.space).
 
 ## Build
