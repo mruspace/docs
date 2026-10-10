@@ -93,9 +93,8 @@
 
 /* The brand, as in the mru.space header. Both words' boxes are trimmed to
    their capital height, so the brand's box is the capitals of "Mru", and the
-   bar centres them. "Docs" is centred on those capitals, and the mark sits
-   outside the flow, centred on them too. The 48 px slot holds the 48 px GIF
-   or the 43 px static mark. */
+   bar centres them. The mark sits outside the flow, centred on them too. The
+   48 px slot holds the 48 px GIF or the 43 px static mark. */
 .docs-top .brand {
   position: relative;
   align-items: baseline;
@@ -105,8 +104,12 @@
 .docs-top .brand > .sub {
   text-box: trim-both cap alphabetic;
 }
+/* "Docs" is centred on the lowercase "ru", where the word's weight sits, not
+   on the capital M. Its capitals (8.5 px) sit on Mru's baseline, so this lifts
+   them by half the difference to the x-height (about 10 px). */
 .docs-top .brand > .sub {
-  align-self: center;
+  position: relative;
+  top: calc((1cap - 10px) / 2);
 }
 .docs-top .brand > .mark-anim {
   position: absolute;
@@ -117,6 +120,23 @@
   position: absolute;
   left: 2.5px;
   top: calc(50% - 21.5px);
+}
+/* The nav links share the baseline of "Mru", as on mru.space. Each link is
+   trimmed to its capital height, so the bar centres its capitals, as it does
+   those of "Mru". Both are the display face, at 16 px and 21 px, so this
+   moves the links down by half the difference in capital height:
+   1cap × (21 − 16) / 16 / 2. The padding keeps the 50 px hit area. */
+.docs-top .nav a {
+  text-box: trim-both cap alphabetic;
+  padding-block: 20px;
+  position: relative;
+  top: calc(1cap * 5 / 32);
+}
+
+/* The GIF starts at once (DocsTop.astro), so the static stand-in is not
+   shown first: the slot stays empty until the GIF has loaded. */
+.docs-top .mark-anim .mark-wait {
+  display: none;
 }
 
 /* Tablets (no canvas artboard): the top bar keeps search and "Mru Aerospace" and
