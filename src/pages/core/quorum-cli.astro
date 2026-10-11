@@ -190,15 +190,23 @@ const crumbs = [
       stopped, halted and sensor flips. <code>--progress-every N</code> adds running totals.{' '}
       <code>--summary file.txt</code> writes the final report for downlink.
     </p>
-    <pre
-      class="pre"
-      tabindex="0"
-    >quorum --policy shrink ...  <span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never</pre>
+    <p>
+      The run from the <a href="/#quickstart">Quickstart</a>,{' '}
+      <code>--policy shrink --ticks 20000 --seed 1 --upset-rate 0.001 --fault kill:0@5000 --fault kill:1@10000</code>,
+      prints:
+    </p>
+    <pre class="pre" tabindex="0">policy=shrink ticks=20000 seed=1 upset_rate=0.001
+<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000
+footprint: voter_max_rss=1920KiB replica_max_rss=1808KiB cpu=0.48s wall=0.46s
+limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_timeout=2000ms</pre>
+    <p class="tiny" style="margin-top: 10px">
+      flight v0.2.0 on an Apple M4. The footprint line varies by host.
+    </p>
     <p style="margin-top: 16px">
-      The summary also gives <code>last_useful</code>, the tick of the last correct result. With a scheduled stuck, hang
-      or corrupt fault, it adds a <code>detection:</code> line: the faults injected, how many the voter caught, and the
-      mean and longest ticks from fault to first reaction. The <a href="/core/bench/">bench</a> runs this program over a
-      matrix of faults.
+      <code>last_useful</code> is the tick of the last correct result. With a scheduled stuck, hang or corrupt fault,
+      the output adds a <code>detection:</code> line: the faults injected, how many the voter caught, and the mean and
+      longest ticks from fault to first reaction. The <a href="/core/bench/">bench</a> runs this program over a matrix
+      of faults.
     </p>
 
     <h2 id="resets">Resets and power cuts</h2>
@@ -221,8 +229,9 @@ const crumbs = [
 
     <h2 id="opssat">On OPS-SAT</h2>
     <p>
-      <code>opssat/run.sh</code> starts, checks and stops a run with all limits set. Tagged releases ship each static
-      Linux binary (three ARM, one x86_64) with the launcher, a sample fault schedule and the operations note.
+      For a proposed experiment on ESA&#39;s OPS-SAT. The experiment has not been accepted. <code>opssat/run.sh</code>{' '}
+      starts, checks and stops a run with all limits set. Tagged releases ship each static Linux binary (three ARM, one
+      x86_64) with the launcher, a sample fault schedule and the operations note.
     </p>
     <DocsEnd />
   </article>

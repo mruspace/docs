@@ -227,9 +227,10 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
     <p class="tiny">20,000 ticks per run. Results for all three upset rates are in the JSON files.</p>
     <p style="margin-top: 16px">
       In all 150 pairs of runs, the shrinking quorum delivered at least as many correct results as fixed TMR on the same
-      seed and faults. While two or more replicas live, both policies make the same decision, as the{' '}
-      <a href="/core/quorum-crate/#proofs">Kani proofs</a> show. The gain comes after TMR stops: TMR halts at the second
-      loss, or, in the stuck schedule, keeps comparing a good replica with a stuck one and rejects every result.
+      seed and faults. This is a test result over these runs, not a proof. On the same replies, both policies give the
+      same outcome each tick, as the <a href="/core/quorum-crate/#proofs">Kani proofs</a> show. The runs differ because
+      the shrinking quorum keeps going and retires bad replicas: TMR halts at the second loss, or, in the stuck
+      schedule, keeps comparing a good replica with a stuck one and rejects every result.
     </p>
 
     <h2 id="wrong">Wrong results</h2>
@@ -453,8 +454,8 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
 
     <h2 id="run">Run it</h2>
     <pre class="pre" tabindex="0"><span class="c"># in a clone of mruspace/flight</span>
-./scripts/bench.sh           <span class="c"># 300 runs, about 2 minutes on an Apple M4</span>
-./scripts/bench.sh --quick   <span class="c"># 2 seeds, 5,000 ticks</span>
+./scripts/bench.sh           <span class="c"># 300 runs, about 3 minutes on an Apple M4</span>
+./scripts/bench.sh --quick   <span class="c"># 2 seeds, 5,000 ticks, about 15 s</span>
 cargo run --release -p bench <span class="c"># the cost of the core only</span></pre>
     <p style="margin-top: 16px">
       The script writes <code>bench/results/&lt;date&gt;-&lt;host&gt;.json</code> and <code>.csv</code>, with the host,
