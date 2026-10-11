@@ -1,0 +1,475 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Core runtime', href: '/core/quorum-crate/' },
+  { label: 'Bench' },
+];
+const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  active="bench"
+  toc={[
+    { href: '#method', label: 'Method' },
+    { href: '#metrics', label: 'Metrics' },
+    { href: '#results', label: 'Results' },
+    { href: '#wrong', label: 'Wrong results' },
+    { href: '#detection', label: 'Survival and detection' },
+    { href: '#core', label: 'Cost of the core' },
+    { href: '#hosts', label: 'Hosts' },
+    { href: '#limits', label: 'Limits' },
+    { href: '#run', label: 'Run it' },
+    { href: '#next', label: 'What comes next' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>Bench</h1>
+    <p class="lede">
+      Layer 1 measured on real processors with injected faults: the shrinking quorum against fixed TMR, on the same
+      faults, over 300 runs per host.
+    </p>
+    <p>
+      Every number on this page comes from <code>scripts/bench.sh</code> in{' '}
+      <a href="https://github.com/mruspace/flight">mruspace/flight</a>, run on the hosts listed under{' '}
+      <a href="#hosts">Hosts</a>. The raw results, one JSON and one CSV file per host, are in{' '}
+      <a href={results}>bench/results</a>. This is lab evidence on general-purpose processors. It is not radiation
+      testing and not flight data. See <a href="#limits">Limits</a>.
+    </p>
+
+    <h2 id="method">Method</h2>
+    <p>
+      Each run starts the <a href="/core/quorum-cli/">quorum program</a>: three replica processes and a voter. Every
+      decision comes from the{' '}
+      <a href="/core/quorum-crate/">
+        <code>quorum</code> crate
+      </a>
+      , the same <code>no_std</code> code meant for flight. Each tick, the replicas hash a 4 KiB block of working
+      memory. An upset flips one bit in that block during the computation, so the fault travels through the real
+      calculation.
+    </p>
+    <p>The bench runs every combination of:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Policy:</strong> fixed TMR and the shrinking quorum, on the same seed and faults.
+      </li>
+      <li>
+        <strong>Seed:</strong> 1 to 10. The seed sets where and when upsets land.
+      </li>
+      <li>
+        <strong>Upset rate:</strong> 0.0001, 0.001 and 0.01, the chance per replica per tick of a bit flip.
+      </li>
+      <li>
+        <strong>Fault schedule:</strong> five schedules, below.
+      </li>
+    </ul>
+    <p>Each run is 20,000 ticks. That makes 300 runs per host.</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Schedule</th>
+            <th>Faults (tick)</th>
+            <th>What it tests</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">none</td>
+            <td>Upsets only</td>
+            <td>Voting masks random upsets.</td>
+          </tr>
+          <tr>
+            <td class="m">staggered-kills</td>
+            <td>Replica 0 dies at 5,000, replica 1 at 10,000</td>
+            <td>Loss of two replicas, one at a time.</td>
+          </tr>
+          <tr>
+            <td class="m">common-mode</td>
+            <td>Replica 0 dies at 2,000, replica 1 at 4,000</td>
+            <td>
+              Self-check on the last replica for 80% of the run. An upset can hit both of its runs alike (share 0.05).
+            </td>
+          </tr>
+          <tr>
+            <td class="m">stuck</td>
+            <td>Replica 1 stuck at 4,000, replica 0 dies at 9,000</td>
+            <td>A replica that returns the same wrong value, found by health scoring.</td>
+          </tr>
+          <tr>
+            <td class="m">last-stuck</td>
+            <td>Replicas 0 and 1 die at 5,000 and 10,000, replica 2 stuck at 15,000</td>
+            <td>A stuck fault on the last replica, found only by the periodic known-answer test.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Known-answer test on the last replica every 64 ticks. Common-mode share 0.05. Both are the program&#39;s defaults.
+    </p>
+
+    <h2 id="metrics">Metrics</h2>
+    <p>
+      Section 14 of the <a href="https://mru.space/mru-whitepaper.pdf">whitepaper</a> names six metrics. A run of three
+      processes supports three of them, plus two measures of its own.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>How the bench measures it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mission Score</td>
+            <td>Correct results: ticks that delivered the right value.</td>
+          </tr>
+          <tr>
+            <td>Survival Duration</td>
+            <td>The tick of the last correct result.</td>
+          </tr>
+          <tr>
+            <td>Graceful Degradation Index</td>
+            <td>
+              Correct results divided by capacity. Capacity is the most a checked design can deliver on the replicas
+              still healthy at each tick: one result per tick with two or more, one every other tick with one (it must
+              compute twice to check itself). 1.0 means every healthy replica did useful work.
+            </td>
+          </tr>
+          <tr>
+            <td>Wrong results</td>
+            <td>Delivered values that were not correct. Nothing flagged them.</td>
+          </tr>
+          <tr>
+            <td>Detection latency</td>
+            <td>
+              Ticks from a stuck, hang or corrupt fault to the voter&#39;s first reaction to that replica: an outvote, a
+              caught disagreement, or its removal.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Energy Efficiency, Decision Quality and Thermal Compliance need power, science and thermal models. The bench does
+      not measure them.
+    </p>
+
+    <h2 id="results">Results</h2>
+    <p>
+      At an upset rate of 0.001, mean of 10 seeds. The ratio column gives the mean, and the lowest single seed in
+      brackets.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Schedule</th>
+            <th>Correct, TMR</th>
+            <th>Correct, shrink</th>
+            <th>Shrink / TMR</th>
+            <th>GDI, TMR</th>
+            <th>GDI, shrink</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">none</td>
+            <td class="m">19,999.9</td>
+            <td class="m">19,999.9</td>
+            <td class="m">1.00 (1.00)</td>
+            <td class="m">1.000</td>
+            <td class="m">1.000</td>
+          </tr>
+          <tr>
+            <td class="m">staggered-kills</td>
+            <td class="m">9,988.5</td>
+            <td class="m">14,985.0</td>
+            <td class="m">1.50 (1.50)</td>
+            <td class="m">0.666</td>
+            <td class="m">0.999</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">common-mode</td>
+            <td class="m">3,994.7</td>
+            <td class="m">11,987.3</td>
+            <td class="m">3.00 (3.00)</td>
+            <td class="m">0.333</td>
+            <td class="m">0.999</td>
+          </tr>
+          <tr>
+            <td class="m">stuck</td>
+            <td class="m">8,989.5</td>
+            <td class="m">14,483.8</td>
+            <td class="m">1.61 (1.61)</td>
+            <td class="m">0.620</td>
+            <td class="m">0.999</td>
+          </tr>
+          <tr>
+            <td class="m">last-stuck</td>
+            <td class="m">9,988.5</td>
+            <td class="m">12,486.2</td>
+            <td class="m">1.25 (1.25)</td>
+            <td class="m">0.799</td>
+            <td class="m">0.999</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">20,000 ticks per run. Results for all three upset rates are in the JSON files.</p>
+    <p style="margin-top: 16px">
+      In all 150 pairs of runs, the shrinking quorum delivered at least as many correct results as fixed TMR on the same
+      seed and faults. While two or more replicas live, both policies make the same decision, as the{' '}
+      <a href="/core/quorum-crate/#proofs">Kani proofs</a> show. The gain comes after TMR stops: TMR halts at the second
+      loss, or, in the stuck schedule, keeps comparing a good replica with a stuck one and rejects every result.
+    </p>
+
+    <h2 id="wrong">Wrong results</h2>
+    <p>
+      Fixed TMR delivered no wrong result in any run. It stops instead. The shrinking quorum pays for its extra work
+      with a small number of wrong results on its last replica. The table gives the mean per run.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Schedule</th>
+            <th>Upset rate 0.0001</th>
+            <th>0.001</th>
+            <th>0.01</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">none</td>
+            <td class="m">0</td>
+            <td class="m">0</td>
+            <td class="m">0</td>
+          </tr>
+          <tr>
+            <td class="m">staggered-kills</td>
+            <td class="m">0</td>
+            <td class="m">0.3</td>
+            <td class="m">1.7</td>
+          </tr>
+          <tr>
+            <td class="m">common-mode</td>
+            <td class="m">0</td>
+            <td class="m">0.3</td>
+            <td class="m">3.6</td>
+          </tr>
+          <tr>
+            <td class="m">stuck</td>
+            <td class="m">0</td>
+            <td class="m">0.2</td>
+            <td class="m">1.7</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">last-stuck</td>
+            <td class="m">20.0</td>
+            <td class="m">20.1</td>
+            <td class="m">20.7</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">Shrinking quorum, mean of 10 seeds per cell, 20,000 ticks per run.</p>
+    <p style="margin-top: 16px">There are two sources:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Common-mode upsets in self-check.</strong> An upset that hits both runs alike gives two equal wrong
+        values. The count follows the model: in the common-mode schedule at 0.01, about 8,000 self-checked results, 80
+        upsets and a share of 0.05 give 4.0 expected. The bench measured 3.6.
+      </li>
+      <li>
+        <strong>A stuck last replica.</strong> Self-check cannot see a fault that gives the same wrong value twice. Only
+        the known-answer test finds it. In last-stuck, the fault came at tick 15,000 and the test caught it at 15,040,
+        after 20 wrong results. The run then stopped.
+      </li>
+    </ul>
+
+    <h2 id="detection">Survival and detection</h2>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Schedule</th>
+            <th>Last correct result, TMR</th>
+            <th>Last correct result, shrink</th>
+            <th>Detection latency</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">staggered-kills</td>
+            <td class="m">9,999</td>
+            <td class="m">20,000</td>
+            <td>None to detect: the voter injects kills itself</td>
+          </tr>
+          <tr>
+            <td class="m">common-mode</td>
+            <td class="m">3,999</td>
+            <td class="m">20,000</td>
+            <td>As above</td>
+          </tr>
+          <tr>
+            <td class="m">stuck</td>
+            <td class="m">8,999</td>
+            <td class="m">20,000</td>
+            <td class="m">0 ticks</td>
+          </tr>
+          <tr>
+            <td class="m">last-stuck</td>
+            <td class="m">9,999</td>
+            <td class="m">14,998</td>
+            <td class="m">40 ticks</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Upset rate 0.001, mean of 10 seeds. Runs end at tick 20,000. At 0.01, two shrinking-quorum runs caught a
+      disagreement on the last tick, so their last correct result was tick 19,998.
+    </p>
+    <p style="margin-top: 16px">
+      With three replicas, a stuck replica is outvoted on the tick it fails, and health scoring retires it two ticks
+      later. On the last replica, detection waits for the next known-answer test, at most 64 ticks. A shorter{' '}
+      <code>--kat-period</code> gives fewer wrong results and less throughput.
+    </p>
+
+    <h2 id="core">Cost of the core</h2>
+    <p>
+      The <code>bench</code> crate times <code>quorum::decide()</code> and <code>Health::strike()</code> with{' '}
+      <code>std::time::Instant</code>: the median of 9 rounds of 2,000,000 calls. Each figure includes the loop and the
+      copy of the replies, so it is an upper bound.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Host</th>
+            <th>decide(), per call</th>
+            <th>Health::strike(), per call</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Apple M4</td>
+            <td class="m">2.45 to 3.24 ns</td>
+            <td class="m">1.33 ns</td>
+          </tr>
+          <tr>
+            <td>Arm Neoverse-N2</td>
+            <td class="m">2.51 to 4.41 ns</td>
+            <td class="m">3.40 ns</td>
+          </tr>
+          <tr>
+            <td>AMD EPYC 7763</td>
+            <td class="m">3.79 to 7.63 ns</td>
+            <td class="m">6.15 ns</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      The range covers all six input cases and both policies. Per-case figures are in the JSON files. On the shared CI
+      machines, two runs of the same code differed by up to 10%.
+    </p>
+    <p style="margin-top: 16px">
+      Built for a bare-metal ARM Cortex-M target (<code>thumbv7em-none-eabihf</code>), the core is 902 bytes of code
+      with rustc 1.99.0, and 1,178 bytes with rustc 1.86.0. In the runs, no process used more than 2.1 MB of memory.
+    </p>
+
+    <h2 id="hosts">Hosts</h2>
+    <p>
+      The same 300 runs on three hosts gave the same counts, run for run. Only the timing differs. In CI, the static ARM
+      binaries also run a short bench under emulation (64-bit ARM, and 32-bit ARM with hard and soft float), and the
+      build fails if any count differs from a native run.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Processor</th>
+            <th>System</th>
+            <th>Compiler</th>
+            <th>Results file</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Apple M4</td>
+            <td>macOS, Darwin 27.0</td>
+            <td class="m">rustc 1.86.0</td>
+            <td class="m">2026-10-11-darwin-arm64</td>
+          </tr>
+          <tr>
+            <td>Arm Neoverse-N2</td>
+            <td>Linux 6.17, GitHub Actions ubuntu-24.04-arm</td>
+            <td class="m">rustc 1.99.0</td>
+            <td class="m">2026-10-11-linux-aarch64</td>
+          </tr>
+          <tr>
+            <td>AMD EPYC 7763</td>
+            <td>Linux 6.17, GitHub Actions ubuntu-latest</td>
+            <td class="m">rustc 1.99.0</td>
+            <td class="m">2026-10-11-linux-x86_64</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">Release build: lto = true, codegen-units = 1. Each file records the commit it ran.</p>
+
+    <h2 id="limits">Limits</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Not radiation.</strong> Upsets are bit flips that the voter injects at chosen rates. The rates are test
+        settings, not a model of any orbit.
+      </li>
+      <li>
+        <strong>Not target hardware.</strong> The hosts are general-purpose processors. Flight-class boards come next.
+        This is why the <a href="/concepts/architecture/">architecture status</a> keeps Layer 1 at Prototype.
+      </li>
+      <li>
+        <strong>Processes, not separate processors.</strong> The three replicas share one processor and one memory. A
+        real failure can take more than one of them at once.
+      </li>
+      <li>
+        <strong>Chosen faults.</strong> The five schedules set when replicas fail. Failure times in a real mission are
+        random. For statistics over thousands of missions, see <a href="/simulation/dusk/">Dusk</a>.
+      </li>
+      <li>
+        <strong>Short runs.</strong> 20,000 ticks per run. The bench does not model aging, power or temperature.
+      </li>
+    </ul>
+
+    <h2 id="run">Run it</h2>
+    <pre class="pre" tabindex="0"><span class="c"># in a clone of mruspace/flight</span>
+./scripts/bench.sh           <span class="c"># 300 runs, about 2 minutes on an Apple M4</span>
+./scripts/bench.sh --quick   <span class="c"># 2 seeds, 5,000 ticks</span>
+cargo run --release -p bench <span class="c"># the cost of the core only</span></pre>
+    <p style="margin-top: 16px">
+      The script writes <code>bench/results/&lt;date&gt;-&lt;host&gt;.json</code> and <code>.csv</code>, with the host,
+      processor, commit and build flags. The same seeds give the same counts on every run.
+    </p>
+
+    <h2 id="next">What comes next</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Calibrate Dusk</strong> with these results. A <code>dusk --calibrate</code> option that reads the bench
+        JSON is planned.
+      </li>
+      <li>
+        <strong>Flight-class boards.</strong> The same bench on target-class processors, with resets and power cuts.
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

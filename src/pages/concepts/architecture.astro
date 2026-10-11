@@ -102,7 +102,10 @@ const crumbs = [
               , <a href="/core/quorum-cli/">demo</a>
             </td>
             <td class="m">Prototype</td>
-            <td>Four Kani proofs, 18 scenario checks in CI, Dusk</td>
+            <td>
+              Four Kani proofs, 20 scenario checks in CI, <a href="/core/bench/">bench</a> on general-purpose
+              processors, Dusk
+            </td>
           </tr>
           <tr>
             <td>2 · Navigation and orientation</td>
@@ -243,7 +246,8 @@ const crumbs = [
     <p style="margin-top: 16px">
       Section 14 names six metrics. Dusk reports useful work, wrong results and the day output ends, which is survival
       duration. The other five need power and science models that Dusk does not have yet. Dusk&#39;s parameters are
-      illustrative, not calibrated.
+      illustrative, not calibrated. The <a href="/core/bench/">bench</a> measures useful work, survival and the Graceful
+      Degradation Index on real processes.
     </p>
 
     <h2 id="products">Products and research</h2>
@@ -270,8 +274,8 @@ const crumbs = [
     <p>In order:</p>
     <ul class="sig-list">
       <li>
-        <strong>Measure Layer 1 on real processors.</strong> Inject faults, measure useful work against fixed TMR, and
-        publish the method and results. This moves Layer 1 to Bench-tested.
+        <strong>Measure Layer 1 on target-class processors.</strong> The <a href="/core/bench/">bench</a> runs today on
+        general-purpose processors. The same bench on flight-class boards moves Layer 1 to Bench-tested.
       </li>
       <li>
         <strong>Calibrate Dusk</strong> with those measurements.
