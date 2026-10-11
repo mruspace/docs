@@ -238,8 +238,10 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
     <p style="margin-top: 16px">
       Only plain values cross. The health record lives in the caller&#39;s memory. Out-of-range input gets the safe
       answer: a policy that is not 0 or 1 halts, an unknown reply kind counts as absent, a replica above 2 changes
-      nothing, and a null pointer does the same. Five Kani proofs show that each function gives the core&#39;s answer
-      for every valid input and the safe answer for every other.
+      nothing, and a null pointer does the same. Five Kani proofs show that <code>quorum_mode</code>,{' '}
+      <code>quorum_decide</code>, <code>quorum_health_strike</code> and <code>quorum_health_clear</code> give the
+      core&#39;s answer for every valid input, and the safe answer for a bad policy, an unknown reply kind or a replica
+      above 2. Unit tests check the null pointers. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
     </p>
 
     <h2 id="tests">Verification</h2>
