@@ -16,6 +16,7 @@ const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/sim
     { href: '#model', label: 'The fault model' },
     { href: '#results', label: 'Default results' },
     { href: '#sweep', label: 'Sweeps and ground' },
+    { href: '#bench', label: 'Checked against the bench' },
     { href: '#claims', label: 'What this does not claim' },
   ]}
 >
@@ -165,6 +166,14 @@ shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>    
       <code>--ground</code> adds a ground team that commands the fallback by hand while support lasts. With 49 years of
       support, Voyager&#39;s so far, the gain is still 1.25×. Answer time barely matters. What matters is whether anyone
       is still there.
+    </p>
+
+    <h2 id="bench">Checked against the bench</h2>
+    <p>
+      <code>--bench FILE</code> replays the schedules of the <a href="/core/bench/">Layer 1 bench</a> through the model
+      and compares the means. On the published results, 17 of 18 rows agree within 3 standard errors. Details are on the{' '}
+      <a href="/core/bench/#model">bench page</a>. This checks the policy model against the real code. It does not
+      calibrate the environment.
     </p>
 
     <h2 id="claims">What this does not claim</h2>
