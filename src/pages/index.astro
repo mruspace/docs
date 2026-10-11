@@ -35,11 +35,12 @@ import DocsLayout from '../layouts/DocsLayout.astro';
           A Monte Carlo of redundancy policies on hardware that only ever decays. 10,000 missions in about two seconds.
         </p>
       </a>
-      <a class="card" href="/core/quorum-cli/" style="text-decoration: none">
+      <a class="card" href="/core/fprime/" style="text-decoration: none">
         <p class="k">Integrations</p>
         <h3 class="h3">F&#180; and OPS-SAT</h3>
         <p class="small soft" style="margin: 10px 0 0">
-          The plan for F&#180; components around the Rust core, and the operations note for running on OPS-SAT.
+          F&#180; components around the Rust core, a C interface for other frameworks, and the operations note for
+          running on OPS-SAT.
         </p>
       </a>
       <a class="card" href="/lab/2049/" style="text-decoration: none">
@@ -93,9 +94,9 @@ cargo run --release -- --sweep   <span class="c"># sensitivity, about 30 s</span
             <td class="m">
               <a href="https://github.com/mruspace/flight">mruspace/flight</a>
             </td>
-            <td>Decision core and demo program</td>
-            <td>Rust</td>
-            <td class="m">v0.1.1</td>
+            <td>Decision core, demo program, bench, C interface and F&#180; components</td>
+            <td>Rust, C++</td>
+            <td class="m">v0.2.0</td>
           </tr>
           <tr>
             <td class="m">
