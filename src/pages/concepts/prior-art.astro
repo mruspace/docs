@@ -1,0 +1,175 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Concepts', href: '/concepts/shrinking-quorum/' },
+  { label: 'Prior art' },
+];
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  active="prior"
+  toc={[
+    { href: '#tmr', label: 'TMR and its origins' },
+    { href: '#performability', label: 'Degradable systems' },
+    { href: '#byzantine', label: 'Byzantine agreement' },
+    { href: '#shuttle', label: 'Space Shuttle' },
+    { href: '#fault-protection', label: 'Deep-space fault protection' },
+    { href: '#adds', label: 'What Mru adds' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>Prior art and related work</h1>
+    <p class="lede">
+      The shrinking quorum builds on decades of work in fault-tolerant computing. Stepping down from three replicas to
+      two to one is not new. This page lists the work Mru draws on and how Mru relates to each.
+    </p>
+
+    <h2 id="tmr">TMR and its origins</h2>
+    <ul class="sig-list">
+      <li>
+        <p style="margin: 0">
+          <strong>von Neumann, 1956.</strong> Shows that reliable computation can be built from unreliable components
+          through redundancy. Mru: the shrinking quorum is one use of that idea, with the redundancy shrinking as parts
+          fail.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          J. von Neumann, &quot;Probabilistic Logics and the Synthesis of Reliable Organisms from Unreliable
+          Components,&quot; in C. E. Shannon and J. McCarthy (eds.), Automata Studies, Princeton University Press, 1956,
+          pp. 43-98.
+        </p>
+      </li>
+      <li>
+        <p style="margin: 0">
+          <strong>Lyons and Vanderkulk, 1962.</strong> Triple modular redundancy with a majority vote, applied to
+          reliability. Mru: fixed TMR in this form is the baseline on these pages. With three replicas, the shrinking
+          quorum votes the same way.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          R. E. Lyons and W. Vanderkulk, &quot;The Use of Triple-Modular Redundancy to Improve Computer
+          Reliability,&quot; IBM Journal of Research and Development, 6(2):200-209, 1962.{' '}
+          <a href="https://doi.org/10.1147/rd.62.0200">doi:10.1147/rd.62.0200</a>
+        </p>
+      </li>
+    </ul>
+
+    <h2 id="performability">Degradable systems and performability</h2>
+    <ul class="sig-list">
+      <li>
+        <p style="margin: 0">
+          <strong>Meyer, 1980.</strong> Defines performability, a measure that combines performance and reliability for
+          systems that degrade. Mru: Dusk&#39;s figure of merit, useful work summed over the whole decline, is a measure
+          of this kind. The whitepaper cites Meyer for it.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          J. F. Meyer, &quot;On Evaluating the Performability of Degradable Computing Systems,&quot; IEEE Transactions
+          on Computers, C-29(8):720-731, 1980.{' '}
+          <a href="https://doi.org/10.1109/TC.1980.1675654">doi:10.1109/TC.1980.1675654</a>
+        </p>
+      </li>
+    </ul>
+
+    <h2 id="byzantine">Byzantine agreement</h2>
+    <ul class="sig-list">
+      <li>
+        <p style="margin: 0">
+          <strong>Lamport, Shostak and Pease, 1982.</strong> Sets the limits of agreement when faulty components can
+          give conflicting information to different parts of a system. Mru: the shrinking quorum assumes replicas that
+          are damaged, not malicious. It does not solve input agreement: all replicas must already have the same input.
+          See <a href="/concepts/shrinking-quorum/#open-questions">Open questions</a>.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          L. Lamport, R. Shostak and M. Pease, &quot;The Byzantine Generals Problem,&quot; ACM Transactions on
+          Programming Languages and Systems, 4(3):382-401, 1982.{' '}
+          <a href="https://doi.org/10.1145/357172.357176">doi:10.1145/357172.357176</a>
+        </p>
+      </li>
+    </ul>
+
+    <h2 id="shuttle">Redundancy management on the Space Shuttle</h2>
+    <ul class="sig-list">
+      <li>
+        <p style="margin: 0">
+          <strong>Sklaroff, 1976.</strong> The Shuttle&#39;s general-purpose computers ran as a redundant set. Voting
+          detected and identified two failures. The remaining two used comparison and self-test to tolerate a third.
+          Mru: degradation from voting to comparison to self-test is not new. Mru does it with no ground team.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          J. R. Sklaroff, &quot;Redundancy Management Technique for Space Shuttle Computers,&quot; IBM Journal of
+          Research and Development, 20(1):20-28, 1976.{' '}
+          <a href="https://doi.org/10.1147/rd.201.0020">doi:10.1147/rd.201.0020</a>
+        </p>
+      </li>
+      <li>
+        <p style="margin: 0">
+          <strong>Spector and Gifford, 1984.</strong> A case study of the Shuttle&#39;s primary computer system. Mru: a
+          reference for how a flown redundant system was designed and managed.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          A. Spector and D. Gifford, &quot;The Space Shuttle Primary Computer System,&quot; Communications of the ACM,
+          27(9):872-900, 1984. <a href="https://doi.org/10.1145/358234.358246">doi:10.1145/358234.358246</a>
+        </p>
+      </li>
+    </ul>
+
+    <h2 id="fault-protection">Autonomous fault protection on deep-space missions</h2>
+    <ul class="sig-list">
+      <li>
+        <p style="margin: 0">
+          <strong>Avizienis et al., 1971 (STAR).</strong> JPL&#39;s self-testing and repairing computer, designed for
+          outer-planet spacecraft. Standby spares replaced failed units by automatic recovery. Mru: autonomous recovery
+          in deep space is decades old. The shrinking quorum steps down instead of relying on spares. The F&#180;{' '}
+          <code>RedundancyManager</code> can admit a spare after a known-answer test.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          A. Avizienis, G. C. Gilley, F. P. Mathur, D. A. Rennels, J. A. Rohr and D. K. Rubin, &quot;The STAR
+          (Self-Testing And Repairing) Computer: An Investigation of the Theory and Practice of Fault-Tolerant Computer
+          Design,&quot; IEEE Transactions on Computers, C-20(11):1312-1321, 1971.{' '}
+          <a href="https://doi.org/10.1109/T-C.1971.223133">doi:10.1109/T-C.1971.223133</a>
+        </p>
+      </li>
+      <li>
+        <p style="margin: 0">
+          <strong>Rasmussen, 2008.</strong> Fundamentals of fault-tolerant design for spacecraft guidance, navigation
+          and control, from JPL. Mru: the shrinking quorum is one autonomous response to processor loss. It is not a
+          full fault-protection system and does not replace one.
+        </p>
+        <p class="tiny" style="margin: 4px 0 0">
+          R. D. Rasmussen, &quot;GN&amp;C Fault Protection Fundamentals,&quot; 31st Annual AAS Guidance and Control
+          Conference, Breckenridge, CO, 2008. Jet Propulsion Laboratory. Companion presentation:{' '}
+          <a href="https://ntrs.nasa.gov/citations/20100020171">NASA NTRS 20100020171</a>.
+        </p>
+      </li>
+    </ul>
+    <!-- TODO: radiation-hardened processors, EDAC and watchdogs in current spacecraft practice. No verified source yet. -->
+    <!-- TODO: dual-string spacecraft avionics with autonomous switchover. No verified source yet. -->
+    <!-- TODO: software-implemented fault tolerance and other fault-tolerant multiprocessors (for example SIFT, FTMP). No verified source yet. -->
+    <!-- TODO: lockstep and self-checking pair processors. No verified source yet. -->
+    <!-- TODO: N-version programming and design diversity. No verified source yet. -->
+    <!-- TODO: model checking of Rust code with Kani. No verified source yet. -->
+
+    <h2 id="adds">What Mru adds</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Autonomy with no ground team.</strong> The step-down from three replicas to one runs on board, with no
+        command from the ground.
+      </li>
+      <li>
+        <strong>A small decision core with proofs.</strong> The <a href="/core/quorum-crate/">quorum crate</a> is{' '}
+        <code>no_std</code> with no allocation. Kani proves four properties of <code>decide()</code> for every set of
+        three replies. See <a href="/core/quorum-crate/#proofs">Kani proofs</a> for the scope of each.
+      </li>
+      <li>
+        <strong>Published trade data.</strong> <a href="/simulation/dusk/">Dusk</a> and the{' '}
+        <a href="/core/bench/">bench</a> publish what the step-down buys in useful work and what it costs in wrong
+        results, with the code to reproduce them.
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

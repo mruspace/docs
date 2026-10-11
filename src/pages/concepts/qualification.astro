@@ -1,0 +1,203 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Concepts', href: '/concepts/shrinking-quorum/' },
+  { label: 'Qualification path' },
+];
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  active="qual"
+  toc={[
+    { href: '#standards', label: 'Standards' },
+    { href: '#exists', label: 'What exists' },
+    { href: '#not-started', label: 'Not started' },
+    { href: '#related', label: 'Related' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>Qualification path</h1>
+    <p class="lede">
+      What exists today, and the NASA and ECSS software standards it relates to. No qualification evidence exists yet.
+      Mru makes no compliance claim.
+    </p>
+
+    <h2 id="standards">Standards</h2>
+    <p>This page maps Mru to four software standards, two from NASA and two from ECSS:</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Number</th>
+            <th>Title</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">NPR 7150.2</td>
+            <td>NASA Software Engineering Requirements</td>
+          </tr>
+          <tr>
+            <td class="m">NASA-STD-8739.8</td>
+            <td>Software Assurance and Software Safety Standard</td>
+          </tr>
+          <tr>
+            <td class="m">ECSS-E-ST-40C</td>
+            <td>Space engineering: Software</td>
+          </tr>
+          <tr>
+            <td class="m">ECSS-Q-ST-80C</td>
+            <td>Space product assurance: Software product assurance</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      The tables below map by topic, not by clause. No clause of any standard has been checked against Mru.
+    </p>
+
+    <h2 id="exists">What exists</h2>
+    <p>
+      These activities run today. They are engineering evidence, not qualification evidence: none was planned, reviewed
+      or recorded under a standard.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Activity</th>
+            <th>What exists</th>
+            <th>Related standards</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Unit tests</td>
+            <td>
+              Unit tests of the core and the C interface, run in CI on every change. See{' '}
+              <a href="/core/quorum-crate/">the quorum crate</a>.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Formal proofs</td>
+            <td>
+              Nine Kani proofs, four on the core and five on the C interface, run in CI on every change. Each has a
+              stated scope. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
+            </td>
+            <td>NPR 7150.2, NASA-STD-8739.8, ECSS-E-ST-40C, ECSS-Q-ST-80C</td>
+          </tr>
+          <tr>
+            <td>Continuous integration</td>
+            <td>
+              Build and test on Linux x86_64, Linux ARM64 and macOS, plus static ARM Linux binaries tested under
+              emulation and a bare-metal ARM Cortex-M build.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Scenario tests</td>
+            <td>
+              <code>scripts/scenarios.sh</code> runs the demo program and checks its output: faults, limits, resets and
+              the comparison with fixed TMR.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Bench</td>
+            <td>
+              300 runs per host with injected faults on three general-purpose processors. Not radiation testing, not
+              target hardware. See <a href="/core/bench/">Bench</a>.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>F&#180; unit tests and system test</td>
+            <td>
+              37 unit tests of the F&#180; components, and a 60-case system test against the demo&#39;s counts. Not run
+              on flight hardware. See <a href="/core/fprime/#tests">F&#180; components</a>.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="not-started">Not started</h2>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Activity</th>
+            <th>Status</th>
+            <th>Related standards</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Software classification and criticality</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, NASA-STD-8739.8, ECSS-Q-ST-80C</td>
+          </tr>
+          <tr>
+            <td>Requirements traceability</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Independent verification and validation</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, NASA-STD-8739.8, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Tool qualification (compiler, Kani, test tools)</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-Q-ST-80C</td>
+          </tr>
+          <tr>
+            <td>Rust toolchain qualification plan: TODO</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-Q-ST-80C</td>
+          </tr>
+          <!-- TODO: Rust toolchain qualification plan. Write it, then update this row. -->
+          <tr>
+            <td>Coding standard compliance</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-Q-ST-80C</td>
+          </tr>
+          <tr>
+            <td>MC/DC structural coverage</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Software development and assurance plans</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, NASA-STD-8739.8, ECSS-E-ST-40C, ECSS-Q-ST-80C</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Status as of 11 Oct 2026, flight v0.2.0. The F&#180; components and the C interface have numbered requirements,
+      each with a verification method, but no trace to mission or standard requirements.
+    </p>
+
+    <h2 id="related">Related</h2>
+    <ul class="sig-list">
+      <li>
+        <a href="/concepts/architecture/">Architecture status</a>: what is built, layer by layer
+      </li>
+      <li>
+        <a href="/concepts/shrinking-quorum/#guarantees">Shrinking quorum</a>: what is proved and what is tested
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

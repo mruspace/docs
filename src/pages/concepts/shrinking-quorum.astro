@@ -2,12 +2,14 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { t, ci } from '../../data/claims';
 
 const crumbs = [
   { label: 'Docs', href: '/' },
   { label: 'Concepts', href: '/concepts/shrinking-quorum/' },
   { label: 'Shrinking quorum' },
 ];
+const proofs = 'https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs';
 ---
 
 <DocsLayout
@@ -16,10 +18,14 @@ const crumbs = [
   toc={[
     { href: '#threshold', label: 'Fixed threshold' },
     { href: '#modes', label: 'Three modes' },
-    { href: '#guarantees', label: 'Guarantees' },
+    { href: '#degradation-first', label: 'Degradation-first' },
+    { href: '#guarantees', label: 'Proved and tested' },
+    { href: '#two-replicas', label: 'Two replicas' },
     { href: '#cost', label: 'What it costs' },
+    { href: '#command-path', label: 'Command path' },
     { href: '#health', label: 'Health and diagnosis' },
     { href: '#gdi', label: 'Degradation index' },
+    { href: '#open-questions', label: 'Open questions' },
     { href: '#related', label: 'Related' },
   ]}
 >
@@ -27,8 +33,14 @@ const crumbs = [
     <Breadcrumbs items={crumbs} />
     <h1>Shrinking quorum</h1>
     <p class="lede">
-      A redundancy policy: vote on three replicas, compare on two, self-check on one. It decides exactly as fixed TMR
-      while TMR can run, and continues after TMR stops.
+      A redundancy policy for unattended missions with no repair path: vote on three replicas, compare on two,
+      self-check on one. It keeps running on the last replica, where fixed TMR stops.
+    </p>
+    <p>
+      Kani proves that, with two or more replicas alive, <code>decide()</code> gives the same outcome under both
+      policies, for every set of three replies. The shrinking quorum also sets <code>diagnose</code> at two replicas, so
+      it can retire a stuck replica and continue where fixed TMR stays in disagreement. Over a whole run, never less
+      than fixed TMR is tested, not proved.
     </p>
 
     <h2 id="threshold">The trouble with a fixed threshold</h2>
@@ -37,8 +49,20 @@ const crumbs = [
       still detect a disagreement. One cannot outvote anything, so the system stops.
     </p>
     <p>
-      With a repair crew in reach, stopping is safe: someone swaps the board. With no one in reach, stopping throws away
-      the last processor&#39;s whole remaining life.
+      Most fault tolerance assumes someone can step in eventually. With a ground team in reach, stopping is safe: the
+      team finds the fault and commands a fallback. With no one in reach, stopping throws away the last processor&#39;s
+      whole remaining life.
+    </p>
+    <p>
+      Fixed TMR is the baseline on these pages because both policies give the same outcome while two or more replicas
+      live. It is not what most spacecraft fly. Most fly dual-string radiation-hardened processors with EDAC, watchdogs
+      and autonomous fault protection. Stepping down from three to two to one is not new either: the Space Shuttle&#39;s
+      redundant set of general-purpose computers did it, and Meyer gave degradable systems a measure, performability, in
+      1980. See <a href="/concepts/prior-art/">Prior art</a>.
+    </p>
+    <p>
+      What Mru adds: the step-down runs with no ground team, the decision core is small and checked with Kani, and the
+      trade data is published (<a href="/simulation/dusk/">Dusk</a>, <a href="/core/bench/">bench</a>).
     </p>
 
     <h2 id="modes">Three modes</h2>
@@ -92,44 +116,155 @@ const crumbs = [
 {'}'}
 {'}'}</pre>
 
-    <h2 id="guarantees">What it guarantees</h2>
+    <h2 id="degradation-first">Degradation-first</h2>
+    <p>The shrinking quorum applies the whitepaper&#39;s design principle:</p>
+    <div class="callout">
+      <span class="tiny">Principle</span>
+      <span>
+        &quot;A system intended to operate for millennia without intervention must treat its own physical decay, of
+        power, computation, memory, and thermal capacity, not as an exceptional fault to be handled, but as the
+        constant, governing condition around which every architectural decision is made.&quot;
+      </span>
+    </div>
+    <div class="callout" style="margin-top: 12px">
+      <span class="tiny">Corollary</span>
+      <span>
+        &quot;Capability is a depleting resource to be spent, not a fixed budget to be defended. The objective is not to
+        preserve function but to maximize the cumulative useful work extracted across the entire descent from full
+        capability to silence.&quot;
+      </span>
+    </div>
+    <p class="tiny" style="margin-top: 10px">
+      W. Binns, <a href="https://mru.space/mru-whitepaper.pdf">Mru whitepaper</a>, section 5,
+      doi:10.5281/zenodo.20579438. Dashes in the original are shown as commas.
+    </p>
+    <p style="margin-top: 16px">
+      For the shrinking quorum, the figure of merit is useful work over the whole decline, not correct operation at full
+      strength. <a href="/simulation/dusk/">Dusk</a> measures it, along with the wrong results it costs.
+    </p>
+
+    <h2 id="guarantees">What is proved and what is tested</h2>
+    <h3 id="proved">Proved (per tick)</h3>
+    <p>
+      Four Kani proofs on <code>decide()</code>. Each reply is any of <code>Absent</code>, <code>Single</code> or{' '}
+      <code>Pair</code>, with any <code>u64</code> values, so each proof covers every set of three replies to{' '}
+      <code>decide()</code>.
+    </p>
     <ul class="sig-list">
       <li>
-        <strong>Never less than fixed TMR.</strong> While TMR can still run, both policies make exactly the same
-        decision. They differ only after TMR has stopped.
+        <a href={`${proofs}#L331`}>
+          <code>identical_while_tmr_can_run</code>
+        </a>
+        : with two or more replies present, both policies give the same outcome. It compares the outcome only, not the
+        mode or <code>diagnose</code>.
       </li>
       <li>
-        <strong>It halts only with nothing left.</strong> Fixed TMR stops below two replicas. The shrinking quorum stops
-        at zero.
+        <a href={`${proofs}#L343`}>
+          <code>tmr_stops_below_two</code>
+        </a>
+        : with fewer than two replies present, the fixed TMR outcome is <code>Halted</code>.
       </li>
       <li>
-        <strong>Only agreed results go out.</strong> A delivered value came from at least two replicas, or from both
-        runs of the last replica&#39;s self-check.
+        <a href={`${proofs}#L352`}>
+          <code>shrink_halts_only_with_nothing_left</code>
+        </a>
+        : the shrinking quorum&#39;s outcome is <code>Halted</code> if and only if no reply is present.
+      </li>
+      <li>
+        <a href={`${proofs}#L362`}>
+          <code>delivers_only_agreed_values</code>
+        </a>
+        : if either policy delivers a value, at least two replies agree on it, or exactly one replica is alive and it
+        returned <code>Pair(v, v)</code>.
       </li>
     </ul>
     <p style="margin-top: 16px">
-      Each property is a Kani proof over every possible input, run in CI on every change. See{' '}
-      <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
+      CI runs <code>cargo kani -p quorum -p quorum-ffi</code> on every change. Five more proofs show that the C
+      interface gives the core&#39;s answer. The proofs do not cover the health record, the diagnosis, the known-answer
+      test, timing, or the system over a run. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
+    </p>
+
+    <h3 id="tested">Tested (per run)</h3>
+    <p>Never less useful work than fixed TMR over a whole run is a test result, with these scopes:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Scenario tests.</strong> <code>scripts/scenarios.sh</code> in CI: ten seeds, two kill faults per run,
+        20,000 ticks. Kill faults only.
+      </li>
+      <li>
+        <strong>Bench.</strong> 150 pairs of runs per host, five fault schedules, on three hosts with general-purpose
+        processors. The three replicas are processes on one host, not separate processors. No pair below fixed TMR. See{' '}
+        <a href="/core/bench/#results">Bench</a>.
+      </li>
+      <li>
+        <strong>Dusk.</strong> {t('dusk.runs')} simulated missions. The two policies are identical until fixed TMR
+        stops, by construction of the model, and a unit test checks it over 200 seeds. See{' '}
+        <a href="/simulation/dusk/">Dusk</a>.
+      </li>
+    </ul>
+
+    <h2 id="two-replicas">Two replicas</h2>
+    <p>
+      With two replicas left, <code>decide()</code> compares them. Equal values are delivered. Unequal values give{' '}
+      <code>Detected</code>, and nothing goes out that tick. Under the shrinking quorum it also sets{' '}
+      <code>diagnose</code>. Fixed TMR does not.
+    </p>
+    <p>
+      The demo then runs a known-answer test (KAT) on both replicas: a fixed input whose result is known. There are
+      three cases.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>Both pass.</strong> Nothing is retired. The tick is lost, and nothing escalates. A persistent fault that
+        the KAT cannot see keeps every tick <code>Detected</code>.
+      </li>
+      <li>
+        <strong>Both fail or time out.</strong> Both are retired, and the run halts. Fixed TMR would keep comparing.
+      </li>
+      <li>
+        <strong>One fails.</strong> It is retired. The survivor goes on in self-check.
+      </li>
+    </ul>
+    <p style="margin-top: 16px">
+      This is the current behavior. The first two cases are gaps: no escalation for a fault the KAT cannot see, and a
+      halt where fixed TMR would go on.
     </p>
 
     <h2 id="cost">What it costs</h2>
     <p>
-      On one replica, a stuck fault is caught only by the periodic known-answer test. Until then, a few wrong results
-      can get out. Fixed TMR never produces those, because it never lives that long.
+      On one replica, a stuck fault is caught only by the periodic known-answer test, and only if it changes the
+      test&#39;s answer. Until then, wrong results get out. Fixed TMR never produces those, because it never lives that
+      long. The bench measures how many faults the test catches:{' '}
+      <a href="/core/bench/#kat">known-answer test coverage</a>.
     </p>
     <div class="callout">
       <span class="tiny">Trade</span>
       <span>
-        In Dusk&#39;s default run, fixed TMR comes out ahead only if one wrong result costs more than 136 years of
-        useful work (95% CI 131 to 142).
+        In Dusk&#39;s default run, {t('dusk.risk.shrink')} of missions (95% CI {ci('dusk.risk.shrink')}) deliver at
+        least one wrong result under the shrinking quorum, and {t('dusk.risk.tmr')} under fixed TMR. Fixed TMR comes out
+        ahead only if one wrong result costs more than {t('dusk.break_even_years')} years of useful work (95% CI{' '}
+        {ci('dusk.break_even_years')}). The run assumes no ground support after launch.
       </span>
     </div>
+
+    <h2 id="command-path">Command path</h2>
+    <p>
+      Self-check on one replica can deliver a few wrong results before the KAT catches a stuck fault. The KAT runs every{' '}
+      <code>--kat-period</code> ticks, 64 by default. An upset that hits both self-check runs alike can also get
+      through.
+    </p>
+    <p>
+      This mode is for data products, not spacecraft commands, unless the mission adds its own command safety layer.
+      Integrators can gate commands on <code>Verdict.mode</code>: issue a command only when the mode is{' '}
+      <code>Vote</code> or <code>Compare</code> and the outcome is <code>Deliver</code>. See the{' '}
+      <a href="/core/quorum-crate/#gate">example</a>.
+    </p>
 
     <h2 id="health">Health and diagnosis</h2>
     <p>
       A replica outvoted <code>STRIKES</code> = 3 times within <code>STRIKE_WINDOW</code> = 200 ticks is diagnosed with
-      a known-answer test: a fixed input whose result is known. Pass, and its strikes are cleared, because the upsets
-      were transient. Fail, and it is retired.
+      a known-answer test. Pass, and its strikes are cleared, on the assumption that the upsets were transient. Fail,
+      and it is retired. The strike record has unit tests, not proofs.
     </p>
 
     <h2 id="gdi">Graceful Degradation Index</h2>
@@ -138,6 +273,29 @@ const crumbs = [
       every surviving part is doing useful work. Dusk measures the simpler cousin, total useful work across the whole
       decline.
     </p>
+
+    <h2 id="open-questions">Open questions</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Common-mode faults</strong>, such as shared power, clock or thermal. Dusk models correlated deaths with{' '}
+        <code>--p-corr</code>. The demo models an upset that hits both self-check runs alike with{' '}
+        <code>--common-mode</code>. Neither models shared power, clock or thermal faults.
+      </li>
+      <li>
+        <strong>Input agreement between replicas.</strong> In the demo, all replicas get the same input because it is a
+        function of the tick. Real sensor inputs need an agreement step. Mru does not provide one yet.
+      </li>
+      <li>
+        <strong>Replica determinism under interrupts and scheduling.</strong> The replicas must compute the same bits.
+        In the demo this holds only because the task is a pure function of the tick. Neither Dusk nor the bench tests
+        it.
+      </li>
+      <li>
+        <strong>KAT coverage on real hardware.</strong> Dusk sets self-check coverage as a parameter,{' '}
+        <code>--coverage</code>. The bench&#39;s stuck fault returns the same wrong value for every input, so the KAT
+        always sees it. Neither measures the share of real hardware faults a KAT catches.
+      </li>
+    </ul>
 
     <h2 id="related">Related</h2>
     <ul class="sig-list">
@@ -148,7 +306,15 @@ const crumbs = [
         : the decision core, in Rust
       </li>
       <li>
-        <a href="/simulation/dusk/">Dusk</a>: 10,000 missions, 1.34× the useful work of fixed TMR
+        <a href="/simulation/dusk/">Dusk</a>: {t('dusk.runs')} missions, {t('dusk.work_vs_tmr')} the useful work of
+        fixed TMR. This assumes no ground support after launch. The gain falls to {t('dusk.ground.never')} when support
+        never ends (<a href="/simulation/dusk/#ground">ground support</a>). Against three-string cold standby it is{' '}
+        {t('dusk.work_vs_cold.01')} to {t('dusk.work_vs_cold.10')}, depending on how fast an unpowered spare ages (
+        <a href="/simulation/dusk/#baselines">baselines</a>).
+      </li>
+      <li>
+        <a href="/concepts/prior-art/">Prior art</a>: TMR, degradable systems, the Space Shuttle and deep-space fault
+        protection
       </li>
       <li>
         <a href="https://mru.space/research/dusk-results/">Research log № 002</a>: the results, written up

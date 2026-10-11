@@ -2,6 +2,7 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { claim, t, CLAIMS, CLAIM_SOURCES } from '../../data/claims';
 
 const crumbs = [
   { label: 'Docs', href: '/' },
@@ -9,6 +10,33 @@ const crumbs = [
   { label: 'Bench' },
 ];
 const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
+
+// Known-answer test coverage, from bench/results/*-kat.json through claims.json.
+const KAT = [
+  ['Stuck result (same wrong value every time)', 'stuck.64'],
+  ['Hang', 'hang.64'],
+  ['Stuck-at bit in the result', 'stuckbit.out.64'],
+  ['Stuck-at bit in the hash accumulator', 'stuckbit.acc.64'],
+  ['Stuck-at bit in the working block (128 of 65,536)', 'stuckbit.block.64'],
+  ['Stuck-at bit in the input', 'stuckbit.in.64'],
+  ['Bit flip in working memory, common-mode share 0', 'corrupt.64.0'],
+  ['Bit flip, common-mode share 0.05', 'corrupt.64.0.05'],
+  ['Bit flip, common-mode share 0.2', 'corrupt.64.0.2'],
+].map(([label, id]) => {
+  const c = claim(`flight.kat_coverage.${id}`);
+  return { label, pct: c.text, d: c.detail ?? {} };
+});
+const PERIODS = [8, 16, 32, 64, 128, 256].map((p) => {
+  const c = claim(`flight.kat_coverage.stuck.${p}`);
+  return {
+    p,
+    pct: c.text,
+    d: c.detail ?? {},
+    tests: t(`flight.kat_cost.${p}.tests_per_result`),
+    cpu: CLAIMS[`flight.kat_cost.${p}.cpu`],
+  };
+});
+const n1 = (v: unknown) => (typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(1)) : '·');
 ---
 
 <DocsLayout
@@ -20,6 +48,7 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
     { href: '#results', label: 'Results' },
     { href: '#wrong', label: 'Wrong results' },
     { href: '#detection', label: 'Survival and detection' },
+    { href: '#kat', label: 'Known-answer test coverage' },
     { href: '#core', label: 'Cost of the core' },
     { href: '#hosts', label: 'Hosts' },
     { href: '#limits', label: 'Limits' },
@@ -227,9 +256,10 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
     <p class="tiny">20,000 ticks per run. Results for all three upset rates are in the JSON files.</p>
     <p style="margin-top: 16px">
       In all 150 pairs of runs, the shrinking quorum delivered at least as many correct results as fixed TMR on the same
-      seed and faults. While two or more replicas live, both policies make the same decision, as the{' '}
-      <a href="/core/quorum-crate/#proofs">Kani proofs</a> show. The gain comes after TMR stops: TMR halts at the second
-      loss, or, in the stuck schedule, keeps comparing a good replica with a stuck one and rejects every result.
+      seed and faults. This is a test result over these runs, not a proof. On the same replies, both policies give the
+      same outcome each tick, as the <a href="/core/quorum-crate/#proofs">Kani proofs</a> show. The runs differ because
+      the shrinking quorum keeps going and retires bad replicas: TMR halts at the second loss, or, in the stuck
+      schedule, keeps comparing a good replica with a stuck one and rejects every result.
     </p>
 
     <h2 id="wrong">Wrong results</h2>
@@ -345,6 +375,116 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
       <code>--kat-period</code> gives fewer wrong results and less throughput.
     </p>
 
+    <h2 id="kat">Known-answer test coverage</h2>
+    <p>
+      On the last replica, self-check cannot see a fault that gives the same wrong answer twice. Only the periodic
+      known-answer test can catch it, and only if the fault changes the test&#39;s answer.{' '}
+      <code>scripts/kat-coverage.sh</code> measures this: it kills two replicas, injects one fault into the last one,
+      and records whether the voter caught it, how fast, and how many wrong results got out first. Results:{' '}
+      <a href={`https://github.com/mruspace/flight/blob/main/bench/results/${CLAIM_SOURCES.flight.kat}`}>
+        {CLAIM_SOURCES.flight.kat}
+      </a>
+      .
+    </p>
+    <p>
+      Scope. These figures come from the demo task on a general-purpose processor: three replica processes on one host,
+      each hashing a 4 KiB block with FNV-1a, with faults the voter injects by command. The test sends one input (tick
+      0) and compares one 64-bit result. The fractions are properties of that task, that input and this fault model.
+      They are not properties of flight hardware or of any flight software. A stuck-at bit is one bit of the input, the
+      working block, the hash accumulator or the result, forced to 0 or 1 from a chosen tick. A bit flip changes one bit
+      of the working block during one computation. The campaign does not cover faults in the voter, the operating system
+      or the links between processes. It is not a radiation test, and the F&#180; components do not model stuck-at bits.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Fault on the last replica</th>
+            <th>Faults</th>
+            <th>Detected</th>
+            <th>Ticks to detect, mean (max)</th>
+            <th>Wrong before detection, mean (max)</th>
+            <th>Missed, wrong results</th>
+            <th>Missed, no effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          {KAT.map((r) => (
+            <tr>
+              <td>{r.label}</td>
+              <td class="m">{r.d.runs}</td>
+              <td class="m">{r.pct}</td>
+              <td class="m">
+                {n1(r.d.latency_mean)} ({n1(r.d.latency_max)})
+              </td>
+              <td class="m">
+                {n1(r.d.wrong_before_detection_mean)} ({n1(r.d.wrong_before_detection_max)})
+              </td>
+              <td class="m">{r.d.missed_with_wrong}</td>
+              <td class="m">{r.d.missed_no_effect}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Test every 64 ticks. Missed, wrong results: the test never caught the fault and wrong results were delivered.
+      Missed, no effect: the fault changed nothing in the run. Bit flips are caught by self-check, not by the
+      known-answer test; the share is the chance that both runs get the same flip.
+    </p>
+    <ul class="sig-list" style="margin-top: 16px">
+      <li>
+        <strong>One test input sees about half of the stuck-at bits.</strong> A stuck bit shows only when it changes the
+        answer to the one test input. A stuck-at-0 bit on the input never does, because the input is 0. The input faults
+        marked &quot;no effect&quot; changed nothing only because these short runs never set those bits.
+      </li>
+      <li>
+        <strong>A missed stuck-at bit keeps delivering wrong results.</strong> For a stuck bit in the result, about half
+        of all later results are wrong, and nothing flags them.
+      </li>
+      <li>
+        <strong>Fix, planned:</strong> a second test input would make most of these visible. It is not built.
+      </li>
+    </ul>
+
+    <h3 style="margin-top: 32px">Test period</h3>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Period, ticks</th>
+            <th>Stuck results detected</th>
+            <th>Ticks to detect, mean (max)</th>
+            <th>Wrong before detection, mean (max)</th>
+            <th>Tests per delivered result</th>
+            <th>Extra CPU, measured (median)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {PERIODS.map((r) => (
+            <tr>
+              <td class="m">{r.p}</td>
+              <td class="m">{r.pct}</td>
+              <td class="m">
+                {n1(r.d.latency_mean)} ({n1(r.d.latency_max)})
+              </td>
+              <td class="m">
+                {n1(r.d.wrong_before_detection_mean)} ({n1(r.d.wrong_before_detection_max)})
+              </td>
+              <td class="m">{r.tests}</td>
+              <td class="m">{r.cpu ? r.cpu.text : 'not measured'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Stuck results: 256 per period, one for every phase of the test. The test count is exact. The CPU column is the
+      median of 10 runs of 100,000 ticks against the same runs with no test, on one host. It includes the request round
+      trip, so it is above the share of extra computations. From period 32 up, it is smaller than the run-to-run spread
+      (about 6% of the median): read it as a few percent at most, not a precise value.
+    </p>
+
     <h2 id="core">Cost of the core</h2>
     <p>
       The <code>bench</code> crate times <code>quorum::decide()</code> and <code>Health::strike()</code> with{' '}
@@ -453,8 +593,8 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
 
     <h2 id="run">Run it</h2>
     <pre class="pre" tabindex="0"><span class="c"># in a clone of mruspace/flight</span>
-./scripts/bench.sh           <span class="c"># 300 runs, about 2 minutes on an Apple M4</span>
-./scripts/bench.sh --quick   <span class="c"># 2 seeds, 5,000 ticks</span>
+./scripts/bench.sh           <span class="c"># 300 runs, about 3 minutes on an Apple M4</span>
+./scripts/bench.sh --quick   <span class="c"># 2 seeds, 5,000 ticks, about 15 s</span>
 cargo run --release -p bench <span class="c"># the cost of the core only</span></pre>
     <p style="margin-top: 16px">
       The script writes <code>bench/results/&lt;date&gt;-&lt;host&gt;.json</code> and <code>.csv</code>, with the host,

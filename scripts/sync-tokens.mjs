@@ -21,6 +21,11 @@ const FILES = [
   ]),
   ['src/scripts/theme.ts', 'src/scripts/theme.ts'],
   ['src/components/Breadcrumbs.astro', 'src/components/Breadcrumbs.astro'],
+  // Headline numbers: claims.json is generated in the website from the flight
+  // and dusk results files. Docs pages read them with claim() or <Claim />.
+  ['src/data/claims.json', 'src/data/claims.json'],
+  ['src/data/claims.ts', 'src/data/claims.ts'],
+  ['src/components/Claim.astro', 'src/components/Claim.astro'],
   // Shared build scripts: share cards, Markdown twins and llms files, checks.
   // Each repo keeps its own scripts/seo/config.mjs.
   ...[

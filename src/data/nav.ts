@@ -1,5 +1,10 @@
 // Docs navigation, from the DocsNav artboard. The nav follows concepts and
 // layers, not repository names. Prev/next follow PAGES.
+//
+// A page marks one item active: the item for the page itself. Items that link
+// to a section of a page (an href with #) are never active; the page item is.
+// So on /concepts/shrinking-quorum/ "Shrinking quorum" is active, not
+// "Degradation-first" or "Graceful Degradation Index".
 
 export type NavId =
   | 'home'
@@ -8,6 +13,8 @@ export type NavId =
   | 'quorum'
   | 'gdi'
   | 'layers'
+  | 'prior'
+  | 'qual'
   | 'crate'
   | 'cli'
   | 'proofs'
@@ -36,10 +43,12 @@ export const NAV: NavGroup[] = [
   {
     title: 'Concepts',
     items: [
-      { id: 'dfp', label: 'Degradation-first', href: '/concepts/shrinking-quorum/' },
+      { id: 'dfp', label: 'Degradation-first', href: '/concepts/shrinking-quorum/#degradation-first' },
       { id: 'quorum', label: 'Shrinking quorum', href: '/concepts/shrinking-quorum/' },
       { id: 'gdi', label: 'Graceful Degradation Index', href: '/concepts/shrinking-quorum/#gdi' },
       { id: 'layers', label: 'Layers 0 to 5', href: '/concepts/architecture/' },
+      { id: 'prior', label: 'Prior art', href: '/concepts/prior-art/' },
+      { id: 'qual', label: 'Qualification path', href: '/concepts/qualification/' },
     ],
   },
   {
@@ -87,7 +96,7 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/shrinking-quorum/',
     short: 'Shrinking quorum',
-    updated: '7 Oct 2026',
+    updated: '11 Oct 2026',
     file: 'src/pages/concepts/shrinking-quorum.astro',
   },
   {
@@ -97,9 +106,21 @@ export const PAGES: DocPage[] = [
     file: 'src/pages/concepts/architecture.astro',
   },
   {
+    path: '/concepts/prior-art/',
+    short: 'Prior art',
+    updated: '11 Oct 2026',
+    file: 'src/pages/concepts/prior-art.astro',
+  },
+  {
+    path: '/concepts/qualification/',
+    short: 'Qualification path',
+    updated: '11 Oct 2026',
+    file: 'src/pages/concepts/qualification.astro',
+  },
+  {
     path: '/core/quorum-crate/',
     short: 'The quorum crate',
-    updated: '7 Oct 2026',
+    updated: '11 Oct 2026',
     source: 'quorum/src/lib.rs',
     file: 'src/pages/core/quorum-crate.astro',
   },
