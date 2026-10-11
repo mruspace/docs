@@ -12,6 +12,7 @@ export type NavId =
   | 'cli'
   | 'proofs'
   | 'targets'
+  | 'bench'
   | 'dusk'
   | 'model'
   | 'sweep'
@@ -48,6 +49,7 @@ export const NAV: NavGroup[] = [
       { id: 'cli', label: 'quorum CLI', href: '/core/quorum-cli/' },
       { id: 'proofs', label: 'Kani proofs', href: '/core/quorum-crate/#proofs' },
       { id: 'targets', label: 'Targets and builds', href: '/core/quorum-crate/#targets' },
+      { id: 'bench', label: 'Bench', href: '/core/bench/' },
     ],
   },
   {
@@ -91,7 +93,7 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/architecture/',
     short: 'Architecture status',
-    updated: '10 Oct 2026',
+    updated: '11 Oct 2026',
     file: 'src/pages/concepts/architecture.astro',
   },
   {
@@ -104,9 +106,16 @@ export const PAGES: DocPage[] = [
   {
     path: '/core/quorum-cli/',
     short: 'The quorum CLI',
-    updated: '7 Oct 2026',
+    updated: '11 Oct 2026',
     source: 'demo/src/main.rs',
     file: 'src/pages/core/quorum-cli.astro',
+  },
+  {
+    path: '/core/bench/',
+    short: 'Bench',
+    updated: '11 Oct 2026',
+    source: 'scripts/bench.sh',
+    file: 'src/pages/core/bench.astro',
   },
   { path: '/simulation/dusk/', short: 'Dusk', updated: '29 Sep 2026', file: 'src/pages/simulation/dusk.astro' },
   { path: '/lab/2049/', short: 'Mru 2049', updated: 'Sep 2026', file: 'src/pages/lab/2049.astro' },
