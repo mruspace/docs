@@ -7,16 +7,18 @@ import DocsLayout from '../layouts/DocsLayout.astro';
     <p class="eyebrow">Overview</p>
     <h1>Mru documentation</h1>
     <p class="lede" style="max-width: 40ch">
-      Reference for Mru&#39;s open core: the shrinking-quorum runtime, the Dusk simulator, and the tools around them.
+      Reference for Mru&#39;s open core, for unattended missions with no repair path: the shrinking-quorum runtime, the
+      Dusk simulator, and the tools around them.
     </p>
 
     <h2>Where to start</h2>
     <div class="cards two" style="margin-top: 8px">
-      <a class="card" href="/concepts/shrinking-quorum/" style="text-decoration: none">
+      <a class="card" href="/concepts/shrinking-quorum/#degradation-first" style="text-decoration: none">
         <p class="k">Concepts</p>
         <h3 class="h3">Degradation-first design</h3>
         <p class="small soft" style="margin: 10px 0 0">
-          The Degradation-First Principle, the shrinking quorum, and how we score a system that is always losing parts.
+          The Degradation-First Principle and the shrinking quorum that applies it: what is proved, what is tested, and
+          what it costs.
         </p>
       </a>
       <a class="card" href="/core/quorum-crate/" style="text-decoration: none">
@@ -39,8 +41,8 @@ import DocsLayout from '../layouts/DocsLayout.astro';
         <p class="k">Integrations</p>
         <h3 class="h3">F&#180; and OPS-SAT</h3>
         <p class="small soft" style="margin: 10px 0 0">
-          F&#180; components around the Rust core, a C interface for other frameworks, and the operations note for
-          running on OPS-SAT.
+          F&#180; components around the Rust core, a C interface for other frameworks, and the operations note for a
+          proposed OPS-SAT experiment.
         </p>
       </a>
       <a class="card" href="/lab/2049/" style="text-decoration: none">
@@ -58,16 +60,19 @@ import DocsLayout from '../layouts/DocsLayout.astro';
 git clone https://github.com/mruspace/flight
 <span class="k">cd</span> flight
 cargo test --workspace
-cargo run --release -- --policy shrink --ticks 20000 --seed 1 \
+cargo run --release --bin quorum -- --policy shrink --ticks 20000 --seed 1 \
   --upset-rate 0.001 --fault kill:0@5000 --fault kill:1@10000</pre>
     <p style="margin-top: 16px">
-      Run the same seed with <code>--policy tmr</code> to compare:
+      Run the same seed with <code>--policy tmr</code> to compare. The first two lines of each run:
     </p>
-    <pre
-      class="pre"
-      tabindex="0"
-    >quorum --policy tmr    ...  useful=9990  detected=9  wrong=0 <span class="s">halted_at=10000</span>
-quorum --policy shrink ...  <span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never</pre>
+    <pre class="pre" tabindex="0">policy=shrink ticks=20000 seed=1 upset_rate=0.001
+<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000
+
+policy=tmr ticks=20000 seed=1 upset_rate=0.001
+useful=9990 detected=9 wrong=0 <span class="s">halted_at=10000</span> alive_at_end=1 stopped=halted last_useful=9999</pre>
+    <p class="tiny" style="margin-top: 10px">
+      flight v0.2.0 on an Apple M4. The counts depend only on the seed.
+    </p>
     <p style="margin-top: 16px">
       Fixed TMR halts at tick 10000, when the second replica dies. The shrinking quorum keeps running on the last
       replica, which checks its own work.
@@ -75,8 +80,11 @@ quorum --policy shrink ...  <span class="s">useful=14989</span> detected=11 wron
     <p style="margin-top: 16px">Then the simulator, which needs no dependencies:</p>
     <pre class="pre" tabindex="0">git clone https://github.com/mruspace/dusk
 <span class="k">cd</span> dusk
-cargo run --release              <span class="c"># 10,000 missions, about 2 s</span>
-cargo run --release -- --sweep   <span class="c"># sensitivity, about 30 s</span></pre>
+cargo run --release --bin dusk              <span class="c"># 10,000 missions, about 2 s</span>
+cargo run --release --bin dusk -- --sweep   <span class="c"># sensitivity, about 1 minute</span></pre>
+    <p class="tiny" style="margin-top: 10px">
+      Times on an Apple M4 with 10 cores.
+    </p>
 
     <h2>Where the code lives</h2>
     <div class="tbl-box" tabindex="0">

@@ -6,7 +6,7 @@ export default {
   drop: ['script', 'style', 'button', 'form', '.prevnext'],
   title: 'Mru docs',
   summary:
-    "Reference for Mru's open core: the shrinking-quorum decision crate and its fault-injection demo (Rust, no_std, four Kani proofs), the Dusk simulator and the Mru 2049 browser flight simulator. Prototype at TRL 3; code under Apache 2.0.",
+    "Reference for Mru's open core, for unattended missions with no repair path: the shrinking-quorum decision crate and its fault-injection demo (Rust, no_std, nine Kani proofs: four on the core, five on the C interface), the Dusk simulator and the Mru 2049 browser flight simulator. Prototype on general-purpose processors, not flight hardware; code under Apache 2.0.",
   intro:
     'Product pages, use cases and research results are at https://mru.space/llms.txt. Questions: contact@mru.space.',
   sections: [

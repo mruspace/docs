@@ -17,6 +17,7 @@ const crumbs = [
   toc={[
     { href: '#install', label: 'Install' },
     { href: '#example', label: 'Example' },
+    { href: '#gate', label: 'Gate commands' },
     { href: '#api', label: 'API' },
     { href: '#proofs', label: 'Kani proofs' },
     { href: '#targets', label: 'Targets and builds' },
@@ -36,7 +37,7 @@ const crumbs = [
       <span class="pill">no allocation</span>
       <span class="pill">no dependencies</span>
       <span class="pill sig">
-        <span class="dot"></span>4 Kani proofs
+        <span class="dot"></span>9 Kani proofs
       </span>
       <span class="pill">v0.2.0</span>
     </div>
@@ -64,6 +65,66 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
         <span class="k">if</span> *outvoted &amp;&amp; health.strike(i, tick) {'{'} run_known_answer_test(i); {'}'}
     {'}'}
 {'}'}</pre>
+
+    <h2 id="gate">Gate commands on the mode</h2>
+    <p>
+      On one replica, self-check can deliver a few wrong results before the periodic known-answer test catches a stuck
+      fault. Use that mode for data products, not spacecraft commands, unless the mission adds its own command safety
+      layer. This example issues a command only when the mode is <code>Vote</code> or <code>Compare</code> and the
+      outcome is <code>Deliver</code>. See <a href="/concepts/shrinking-quorum/#command-path">Command path</a>.
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    ><span class="c">//! Gate commands on the mode. Only a result that two or more replicas agree</span>
+<span class="c">//! on (vote or compare) may command the spacecraft. A result from the last</span>
+<span class="c">//! replica&#39;s self-check goes out as a data product only.</span>
+<span class="k">use</span> quorum::{'{'}decide, Mode, Outcome, Policy, Reply, REPLICAS{'}'};
+
+<span class="c">/// What to do with one tick&#39;s result.</span>
+<span class="k">enum</span> Action {'{'}
+    <span class="c">/// Agreed by two or more replicas: may be used as a command.</span>
+    Command(u64),
+    <span class="c">/// Self-check on the last replica: data product only.</span>
+    Data(u64),
+    <span class="c">/// Nothing to send this tick.</span>
+    Hold,
+{'}'}
+
+<span class="k">fn</span> gate(replies: &amp;[Reply; REPLICAS]) -&gt; Action {'{'}
+    <span class="k">let</span> verdict = decide(Policy::Shrink, replies);
+    <span class="k">match</span> (verdict.mode, verdict.outcome) {'{'}
+        (Mode::Vote | Mode::Compare, Outcome::Deliver(x)) =&gt; Action::Command(x),
+        (Mode::SelfCheck, Outcome::Deliver(x)) =&gt; Action::Data(x),
+        _ =&gt; Action::Hold,
+    {'}'}
+{'}'}
+
+<span class="k">fn</span> main() {'{'}
+    <span class="k">use</span> Reply::{'{'}Absent, Pair, Single{'}'};
+    <span class="k">let</span> ticks = [
+        [Single(7), Single(7), Single(9)], <span class="c">// vote: two agree on 7</span>
+        [Absent, Single(7), Single(7)],    <span class="c">// compare: both say 7</span>
+        [Absent, Single(7), Single(9)],    <span class="c">// compare: mismatch</span>
+        [Absent, Absent, Pair(7, 7)],      <span class="c">// self-check on the last replica</span>
+        [Absent, Absent, Absent],          <span class="c">// nothing left</span>
+    ];
+    <span class="k">for</span> replies <span class="k">in</span> &amp;ticks {'{'}
+        <span class="k">match</span> gate(replies) {'{'}
+            Action::Command(x) =&gt; println!("{'{'}replies:?{'}'}: command {'{'}x{'}'}"),
+            Action::Data(x) =&gt; println!("{'{'}replies:?{'}'}: data product {'{'}x{'}'}"),
+            Action::Hold =&gt; println!("{'{'}replies:?{'}'}: hold"),
+        {'}'}
+    {'}'}
+{'}'}</pre>
+    <p style="margin-top: 16px">
+      Its output, from <code>cargo run</code> against v0.2.0:
+    </p>
+    <pre class="pre" tabindex="0">[Single(7), Single(7), Single(9)]: command 7
+[Absent, Single(7), Single(7)]: command 7
+[Absent, Single(7), Single(9)]: hold
+[Absent, Absent, Pair(7, 7)]: data product 7
+[Absent, Absent, Absent]: hold</pre>
 
     <h2 id="api">API</h2>
     <h3>const REPLICAS: usize = 3</h3>
@@ -190,13 +251,16 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
       reset or hand it to C.
     </p>
     <p>
-      From C or C++, use the <a href="/core/fprime/#c">C interface</a>, <code>quorum.h</code>. Kani proves that each of
-      its functions gives this crate&#39;s answer.
+      From C or C++, use the <a href="/core/fprime/#c">C interface</a>, <code>quorum.h</code>. Kani proves that{' '}
+      <code>quorum_mode</code>, <code>quorum_decide</code>, <code>quorum_health_strike</code> and{' '}
+      <code>quorum_health_clear</code> give this crate&#39;s answer.
     </p>
 
     <h2 id="proofs">Kani proofs</h2>
     <p>
-      Run with <code>cargo kani -p quorum</code>. Each holds for every possible input.
+      Nine proofs: four on the core in <code>quorum</code>, five on the C interface in <code>quorum-ffi</code>. CI runs
+      <code>cargo kani -p quorum -p quorum-ffi</code> on every change. In the core proofs, each reply is any of
+      <code>Absent</code>, <code>Single</code> or <code>Pair</code>, with any <code>u64</code> values.
     </p>
     <div class="tbl-box" tabindex="0">
       <table class="tbl">
@@ -204,28 +268,129 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           <tr>
             <th>Proof</th>
             <th>Property</th>
+            <th>Scope</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="m">identical_while_tmr_can_run</td>
-            <td>With two or more replicas alive, both policies decide the same.</td>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L331">
+                identical_while_tmr_can_run
+              </a>
+            </td>
+            <td>With two or more replies present, both policies give the same outcome.</td>
+            <td>
+              Every set of three replies with two or more present. Outcome only, not mode or <code>diagnose</code>.
+            </td>
           </tr>
           <tr>
-            <td class="m">tmr_stops_below_two</td>
-            <td>Fixed TMR halts below two replicas.</td>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L343">tmr_stops_below_two</a>
+            </td>
+            <td>
+              With fewer than two replies present, fixed TMR&#39;s outcome is <code>Halted</code>.
+            </td>
+            <td>Every set of three replies with fewer than two present.</td>
           </tr>
           <tr>
-            <td class="m">shrink_halts_only_with_nothing_left</td>
-            <td>The shrinking quorum halts only at zero.</td>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L352">
+                shrink_halts_only_with_nothing_left
+              </a>
+            </td>
+            <td>
+              The shrinking quorum&#39;s outcome is <code>Halted</code> if and only if no reply is present.
+            </td>
+            <td>Every set of three replies.</td>
           </tr>
           <tr>
-            <td class="m">delivers_only_agreed_values</td>
-            <td>A delivered value had two votes, or a clean self-check.</td>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L362">
+                delivers_only_agreed_values
+              </a>
+            </td>
+            <td>
+              A delivered value has two agreeing replies, or exactly one replica alive that returned{' '}
+              <code>Pair(v, v)</code>.
+            </td>
+            <td>Every set of three replies, under both policies.</td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L314">decide_is_the_core</a>
+            </td>
+            <td>
+              <code>quorum_decide</code> gives the core&#39;s verdict. An unknown reply kind counts as absent.
+            </td>
+            <td>C interface: policy 0 or 1, any reply kind and values.</td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L330">bad_policy_halts</a>
+            </td>
+            <td>
+              Any other policy code halts <code>quorum_decide</code> and <code>quorum_mode</code>.
+            </td>
+            <td>C interface: any policy code above 1.</td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L340">mode_is_the_core</a>
+            </td>
+            <td>
+              <code>quorum_mode</code> gives the core&#39;s mode.
+            </td>
+            <td>
+              C interface: policy 0 or 1, any <code>u32</code> count.
+            </td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L359">strike_is_the_core</a>
+            </td>
+            <td>
+              <code>quorum_health_strike</code> gives the core&#39;s answer and record. A replica above 2 changes
+              nothing.
+            </td>
+            <td>
+              C interface: any record with counts in the <code>u32</code> range, any replica and cycle.
+            </td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L384">clear_is_the_core</a>
+            </td>
+            <td>
+              <code>quorum_health_clear</code> gives the core&#39;s record. A replica above 2 changes nothing.
+            </td>
+            <td>
+              C interface: any record with counts in the <code>u32</code> range, any replica.
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+    <p class="tiny">Each proof name links to its source at v0.2.0.</p>
+    <h3 id="not-covered">Not covered</h3>
+    <ul class="sig-list">
+      <li>
+        <strong>
+          <code>Health</code> in the core.
+        </strong>{' '}
+        Unit tests only.
+      </li>
+      <li>
+        <strong>Diagnosis and the known-answer test.</strong> They run in the demo and in F&#180;, not in the core.
+      </li>
+      <li>
+        <strong>Timing.</strong> The proofs say what <code>decide()</code> returns, not how long it takes. The
+        <a href="/core/bench/#core">bench</a> measures that.
+      </li>
+      <li>
+        <strong>The system over a run.</strong> Never less than fixed TMR over a whole run is tested, not proved. See
+        <a href="/concepts/shrinking-quorum/#tested">Tested (per run)</a>.
+      </li>
+    </ul>
 
     <h2 id="targets">Targets and builds</h2>
     <p>CI builds and tests on every change:</p>
