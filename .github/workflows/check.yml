@@ -4,10 +4,32 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  # A new push to a pull request cancels the run for the old commit.
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+env:
+  SYNC_FROM: github # the shared files must match mruspace/website main
+# The jobs run the steps of `npm run check` side by side. A step added to
+# `check` in package.json must also go in one of these jobs.
 jobs:
-  check:
+  static:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check:tokens
+      - run: npm run check:types
+      - run: npm run lint
+
+  site:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -16,6 +38,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run check
-        env:
-          SYNC_FROM: github # the shared files must match mruspace/website main
+      - run: npm run build
+      - run: npm run check:html
+      - run: npm run check:links
+      - run: npm run test:e2e
+
+  lighthouse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each shard audits the URLs in lighthouserc.json whose index modulo 2 is the shard.
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Lighthouse
+        run: |
+          urls=$(node -e "const u=require('./lighthouserc.json').ci.collect.url; console.log(u.filter((_, i) => i % 2 === ${{ matrix.shard }}).map(x => '--collect.url=' + x).join(' '))")
+          test -n "$urls" || exit 0
+          npx lhci autorun $urls
