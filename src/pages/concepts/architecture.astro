@@ -1,0 +1,300 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Concepts', href: '/concepts/shrinking-quorum/' },
+  { label: 'Architecture status' },
+];
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  active="layers"
+  toc={[
+    { href: '#levels', label: 'Status levels' },
+    { href: '#layers', label: 'Layers 0 to 5' },
+    { href: '#layer1', label: 'Layer 1, part by part' },
+    { href: '#shared', label: 'Shared parts' },
+    { href: '#products', label: 'Products and research' },
+    { href: '#next', label: 'What comes next' },
+    { href: '#related', label: 'Related' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>Architecture status</h1>
+    <p class="lede">
+      The whitepaper describes six layers and the parts they share. This page shows where each part stands today: what
+      is built, where the code is, and what evidence supports it.
+    </p>
+    <p>
+      For the design itself, read the <a href="https://mru.space/architecture/">architecture overview</a> or the{' '}
+      <a href="https://mru.space/mru-whitepaper.pdf">whitepaper</a>. Section numbers on this page refer to the
+      whitepaper.
+    </p>
+
+    <h2 id="levels">Status levels</h2>
+    <p>Each part has one of five levels. A part moves up only with the evidence the level names.</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">Paper</td>
+            <td>Described in the whitepaper. No code.</td>
+          </tr>
+          <tr>
+            <td class="m">Spec</td>
+            <td>A written specification: interfaces, data formats and the properties to prove. No code.</td>
+          </tr>
+          <tr>
+            <td class="m">Prototype</td>
+            <td>Code with tests or proofs, run on general-purpose processors. Not measured on target hardware.</td>
+          </tr>
+          <tr>
+            <td class="m">Bench-tested</td>
+            <td>Measured on target-class processors with injected faults. Results published.</td>
+          </tr>
+          <tr>
+            <td class="m">Deployed</td>
+            <td>Ran in orbit or at a field site. Logs published.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="layers">Layers 0 to 5</h2>
+    <p>Only Layer 1 has code today. Layers 0 and 2 to 5 exist only in the whitepaper.</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Whitepaper</th>
+            <th>Code</th>
+            <th>Status</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>0 · Survival kernel</td>
+            <td class="m">§7</td>
+            <td>None</td>
+            <td class="m">Paper</td>
+            <td>None</td>
+          </tr>
+          <tr class="hl">
+            <td>1 · Hardware consensus and health</td>
+            <td class="m">§8</td>
+            <td>
+              <a href="/core/quorum-crate/">
+                <code>quorum</code> crate
+              </a>
+              , <a href="/core/quorum-cli/">demo</a>
+            </td>
+            <td class="m">Prototype</td>
+            <td>Four Kani proofs, 18 scenario checks in CI, Dusk</td>
+          </tr>
+          <tr>
+            <td>2 · Navigation and orientation</td>
+            <td class="m">§9</td>
+            <td>None</td>
+            <td class="m">Paper</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>3 · Science and knowledge triage</td>
+            <td class="m">§10</td>
+            <td>None</td>
+            <td class="m">Paper</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>4 · Communication</td>
+            <td class="m">§11</td>
+            <td>None</td>
+            <td class="m">Paper</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>5 · Bounded self-modification</td>
+            <td class="m">§12</td>
+            <td>None</td>
+            <td class="m">Paper</td>
+            <td>None</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 id="layer1">Layer 1, part by part</h2>
+    <p>
+      Section 8 gives Layer 1 five parts. The shrinking quorum is built. The health registry is partly built. The other
+      three are not started.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Status</th>
+            <th>What exists</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td>Shrinking quorum</td>
+            <td class="m">Prototype</td>
+            <td>
+              <code>quorum::mode</code> and <code>quorum::decide</code>: vote on three, compare on two, self-check on
+              one. <code>no_std</code>, no allocation, builds for ARM Cortex-M.
+            </td>
+          </tr>
+          <tr>
+            <td>Node health registry</td>
+            <td class="m">Prototype, partial</td>
+            <td>
+              <code>quorum::Health</code> counts strikes per replica. Three strikes within 200 ticks start a
+              known-answer test, which retires or clears the replica. The whitepaper&#39;s score of error rate, response
+              time and gate use is not built.
+            </td>
+          </tr>
+          <tr>
+            <td>Memory scrubbing</td>
+            <td class="m">Paper</td>
+            <td>
+              Listed as the F&#180; <code>ScrubScheduler</code>, not started. The demo&#39;s radiation sensor checks a
+              memory block for bit flips. It counts upsets. It does not scrub.
+            </td>
+          </tr>
+          <tr>
+            <td>Hardware inventory and cannibalization</td>
+            <td class="m">Paper</td>
+            <td>Not started. Dusk models salvaged spares in simulation only.</td>
+          </tr>
+          <tr>
+            <td>Power accountant</td>
+            <td class="m">Paper</td>
+            <td>
+              Listed as the F&#180; <code>PowerAccountant</code>, not started.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      F&#180; component status from{' '}
+      <a href="https://github.com/mruspace/flight/blob/main/docs/fprime-design.md">docs/fprime-design.md</a> in
+      mruspace/flight.
+    </p>
+
+    <h2 id="shared">Shared parts</h2>
+    <p>These parts serve every layer.</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Whitepaper</th>
+            <th>Status</th>
+            <th>What exists</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Duty-cycle scheduler</td>
+            <td class="m">§4.5</td>
+            <td class="m">Paper</td>
+            <td>None. The whitepaper does not yet assign it to a layer.</td>
+          </tr>
+          <tr>
+            <td>Memory tiers</td>
+            <td class="m">§4.3</td>
+            <td class="m">Paper</td>
+            <td>None.</td>
+          </tr>
+          <tr>
+            <td>Degradation model and mission phases</td>
+            <td class="m">§13</td>
+            <td class="m">Paper</td>
+            <td>None. Dusk models processor loss, not the power phases.</td>
+          </tr>
+          <tr class="hl">
+            <td>Simulation framework</td>
+            <td class="m">§14</td>
+            <td class="m">Prototype, partial</td>
+            <td>
+              <a href="/simulation/dusk/">Dusk</a> models processor failures, correlated failures, salvaged spares and
+              upsets. It does not model power decay, thermal limits, memory decay or science targets.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 16px">
+      Section 14 names six metrics. Dusk reports useful work, wrong results and the day output ends, which is survival
+      duration. The other five need power and science models that Dusk does not have yet. Dusk&#39;s parameters are
+      illustrative, not calibrated.
+    </p>
+
+    <h2 id="products">Products and research</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Mru Flight</strong> runs Layer 1 on spacecraft. The F&#180; components <code>RedundancyManager</code>,{' '}
+        <code>HealthRegistry</code> and <code>ReplicaHost</code> are designed, not built. A launcher for{' '}
+        <a href="/core/quorum-cli/#opssat">ESA&#39;s OPS-SAT</a> is in the repository.
+      </li>
+      <li>
+        <strong>Mru Field</strong> runs the same Layer 1 core on systems on Earth that are hard to reach. See{' '}
+        <a href="https://mru.space/field/">Mru Field</a>.
+      </li>
+      <li>
+        <strong>Dusk</strong> is the first part of the §14 simulation framework.
+      </li>
+      <li>
+        <strong>Mru 2049</strong> is not part of the layers. It is a <a href="/lab/2049/">browser flight simulator</a>{' '}
+        on real astronomical data.
+      </li>
+    </ul>
+
+    <h2 id="next">What comes next</h2>
+    <p>In order:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Measure Layer 1 on real processors.</strong> Inject faults, measure useful work against fixed TMR, and
+        publish the method and results. This moves Layer 1 to Bench-tested.
+      </li>
+      <li>
+        <strong>Calibrate Dusk</strong> with those measurements.
+      </li>
+      <li>
+        <strong>Specify Layer 0.</strong> The instruction set, the format of behavior programs, the integrity check
+        against Tier 0, and the properties to prove. Code starts after the specification.
+      </li>
+    </ul>
+
+    <h2 id="related">Related</h2>
+    <ul class="sig-list">
+      <li>
+        <a href="https://mru.space/architecture/">Architecture overview</a>: the six layers and the descent, on
+        mru.space
+      </li>
+      <li>
+        <a href="/concepts/shrinking-quorum/">Shrinking quorum</a>: the Layer 1 rule and its guarantees
+      </li>
+      <li>
+        <a href="/simulation/dusk/">Dusk</a>: 10,000 missions, 1.34× the useful work of fixed TMR
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

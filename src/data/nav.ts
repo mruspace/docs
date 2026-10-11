@@ -1,6 +1,5 @@
 // Docs navigation, from the DocsNav artboard. The nav follows concepts and
 // layers, not repository names. Prev/next follow PAGES.
-import { SITE } from './site';
 
 export type NavId =
   | 'home'
@@ -39,7 +38,7 @@ export const NAV: NavGroup[] = [
       { id: 'dfp', label: 'Degradation-first', href: '/concepts/shrinking-quorum/' },
       { id: 'quorum', label: 'Shrinking quorum', href: '/concepts/shrinking-quorum/' },
       { id: 'gdi', label: 'Graceful Degradation Index', href: '/concepts/shrinking-quorum/#gdi' },
-      { id: 'layers', label: 'Layers 0 to 5', href: `${SITE.www}/architecture/` },
+      { id: 'layers', label: 'Layers 0 to 5', href: '/concepts/architecture/' },
     ],
   },
   {
@@ -88,6 +87,12 @@ export const PAGES: DocPage[] = [
     short: 'Shrinking quorum',
     updated: '7 Oct 2026',
     file: 'src/pages/concepts/shrinking-quorum.astro',
+  },
+  {
+    path: '/concepts/architecture/',
+    short: 'Architecture status',
+    updated: '10 Oct 2026',
+    file: 'src/pages/concepts/architecture.astro',
   },
   {
     path: '/core/quorum-crate/',
