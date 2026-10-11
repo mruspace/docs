@@ -15,7 +15,9 @@ const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/sim
     { href: '#options', label: 'Options' },
     { href: '#model', label: 'The fault model' },
     { href: '#results', label: 'Default results' },
-    { href: '#sweep', label: 'Sweeps and ground' },
+    { href: '#definitions', label: 'What the columns mean' },
+    { href: '#sweep', label: 'Sweeps' },
+    { href: '#ground', label: 'Ground support' },
     { href: '#bench', label: 'Checked against the bench' },
     { href: '#claims', label: 'What this does not claim' },
   ]}
@@ -40,13 +42,14 @@ const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/sim
     <pre
       class="pre"
       tabindex="0"
-    >cargo run --release                 <span class="c"># the default scenario, about 2 s</span>
-cargo run --release -- --spares 2   <span class="c"># add salvaged processors</span>
-cargo run --release -- --sweep      <span class="c"># sensitivity, about 30 s</span>
-cargo run --release -- --ground     <span class="c"># against TMR with a ground team, about 10 s</span>
-cargo run --release --bin charts    <span class="c"># redraw the charts and data.json</span></pre>
+    >cargo run --release --bin dusk                 <span class="c"># the default scenario, about 2 s</span>
+cargo run --release --bin dusk -- --spares 2   <span class="c"># add salvaged processors</span>
+cargo run --release --bin dusk -- --sweep      <span class="c"># sensitivity, about 1 minute</span>
+cargo run --release --bin dusk -- --ground     <span class="c"># against TMR with a ground team, about 12 s</span>
+cargo run --release --bin charts               <span class="c"># redraw the charts and data.json, about 2 minutes</span></pre>
     <p style="margin-top: 16px">
-      Times are for an 8-core laptop. Results depend only on the seed, never on the thread count.
+      The package has two programs, so <code>cargo run</code> needs <code>--bin</code>. Times are for an Apple M4 with
+      10 cores. Results depend only on the seed, never on the thread count.
     </p>
 
     <h2 id="options">Options</h2>
@@ -154,18 +157,72 @@ fixed TMR             99.0     37.6     92.7    168.9         99.0        0.000
 standby simplex       83.1     38.4     78.3    134.0        166.4        0.603
 shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>        166.4        0.246</pre>
     <p style="margin-top: 16px">
-      1.34× the useful work of fixed TMR in total (95% CI 1.33× to 1.35×). Never less on any single mission.
+      1.34× the useful work of fixed TMR in total (95% CI 1.33× to 1.35×). This assumes no ground support after launch.
+      The gain falls to 1.00× when support never ends. See <a href="#ground">Ground support</a>. Never less on any
+      single mission, by construction: the two policies are identical until fixed TMR stops.
+    </p>
+    <p>
+      Standby simplex is the nearest model here of dual-string with autonomous switchover. It runs one self-checking
+      processor at a time and swaps in the next when it dies.
     </p>
 
-    <h2 id="sweep">Sweeps and ground support</h2>
+    <h2 id="definitions">What the columns mean</h2>
+    <p>
+      Each mission runs one day at a time. On each day the policy runs in one mode, set by the number of live
+      processors, and the lowest-numbered live processors do the work. These are the definitions in{' '}
+      <code>src/model.rs</code>.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>Useful.</strong> The sum over days of throughput credit for a correct delivered result: 1.0 for a vote
+        day with at most one upset, 1.0 for a pair day with no upset, 0.5 (<code>--selfcheck-throughput</code>) for a
+        single self-check day with no upset, and 0 for lost, wrong and idle days. Shown as the mean in years, with the
+        10th, 50th and 90th percentiles.
+      </li>
+      <li>
+        <strong>Service.</strong> The first day the policy can never produce output again, or the horizon. For fixed
+        TMR, the first day with fewer than two live processors. For the others, the first day with none left. The model
+        ends the run that day, so a spare due to join later is not used. Shown as the mean in years.
+      </li>
+      <li>
+        <strong>Wrong days.</strong> Days whose delivered result was corrupted by an upset that nothing caught. One day
+        is one result. Only a lone processor can make one: its self-check misses an upset with probability 1 minus{' '}
+        <code>--coverage</code>. Shown as the mean per mission.
+      </li>
+    </ul>
+    <p style="margin-top: 16px">
+      A vote day with two or more upsets and a pair day with any upset are lost: the policy catches the disagreement and
+      delivers nothing.
+    </p>
+
+    <!-- DUSK-BASELINES -->
+
+    <h2 id="sweep">Sweeps</h2>
     <p>
       <code>--sweep</code> varies each parameter the model cannot pin down. Across every row, the gain over fixed TMR
-      stays between 1.11× and 1.68×.
+      stays between 1.11× and 1.68×. Every row assumes no ground support after launch.
     </p>
+
+    <h2 id="ground">Ground support</h2>
     <p>
-      <code>--ground</code> adds a ground team that commands the fallback by hand while support lasts. With 49 years of
-      support, Voyager&#39;s so far, the gain is still 1.25×. Answer time barely matters. What matters is whether anyone
-      is still there.
+      The 1.34× above assumes no ground support after launch. <code>--ground</code> compares the shrinking quorum with
+      fixed TMR plus a ground team. When TMR drops to one processor, the team commands it into self-check after an
+      answer time, if support has not ended. The gain falls as support lasts longer:
+    </p>
+    <pre class="pre" tabindex="0">10000 missions, seed 1; shrinking quorum&#39;s useful work vs TMR + ground fallback
+
+ground support ends        1 day   30 days  180 days   95% CI at 30 days
+at launch                  1.34x     1.34x     1.34x   1.33x to 1.35x
+after 10 years             1.33x     1.33x     1.33x   1.33x to 1.34x
+after 25 years             1.31x     1.31x     1.31x   1.30x to 1.32x
+after 50 years             1.25x     1.25x     1.25x   1.24x to 1.25x
+after 100 years            1.11x     1.11x     1.11x   1.10x to 1.11x
+after 200 years            1.01x     1.01x     1.01x   1.01x to 1.01x
+never                      1.00x     1.00x     1.00x   1.00x to 1.00x</pre>
+    <p style="margin-top: 16px">
+      With support that never ends, the gain is 1.00×: the ground does by hand what the shrinking quorum does alone.
+      With 49 years of support, Voyager&#39;s so far, the charts program gives 1.25×. Answer time barely matters. What
+      matters is whether anyone is still there.
     </p>
 
     <h2 id="bench">Checked against the bench</h2>
