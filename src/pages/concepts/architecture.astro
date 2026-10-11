@@ -99,12 +99,13 @@ const crumbs = [
               <a href="/core/quorum-crate/">
                 <code>quorum</code> crate
               </a>
-              , <a href="/core/quorum-cli/">demo</a>
+              , <a href="/core/quorum-cli/">demo</a>,{' '}
+              <a href="https://github.com/mruspace/flight/tree/main/fprime">F&#180; components</a>
             </td>
             <td class="m">Prototype</td>
             <td>
-              Four Kani proofs, 20 scenario checks in CI, <a href="/core/bench/">bench</a> on general-purpose
-              processors, Dusk
+              Nine Kani proofs, 21 scenario checks and 37 F&#180; unit tests in CI, an F&#180; system test against the
+              demo, <a href="/core/bench/">bench</a> on general-purpose processors, Dusk
             </td>
           </tr>
           <tr>
@@ -159,7 +160,8 @@ const crumbs = [
             <td class="m">Prototype</td>
             <td>
               <code>quorum::mode</code> and <code>quorum::decide</code>: vote on three, compare on two, self-check on
-              one. <code>no_std</code>, no allocation, builds for ARM Cortex-M.
+              one. <code>no_std</code>, no allocation, builds for ARM Cortex-M. The F&#180; component{' '}
+              <code>RedundancyManager</code> runs it through a C interface that Kani proves equal to the core.
             </td>
           </tr>
           <tr>
@@ -167,8 +169,8 @@ const crumbs = [
             <td class="m">Prototype, partial</td>
             <td>
               <code>quorum::Health</code> counts strikes per replica. Three strikes within 200 ticks start a
-              known-answer test, which retires or clears the replica. The whitepaper&#39;s score of error rate, response
-              time and gate use is not built.
+              known-answer test, which retires or clears the replica. The F&#180; component <code>HealthRegistry</code>{' '}
+              holds the record. The whitepaper&#39;s score of error rate, response time and gate use is not built.
             </td>
           </tr>
           <tr>
@@ -182,13 +184,17 @@ const crumbs = [
           <tr>
             <td>Hardware inventory and cannibalization</td>
             <td class="m">Paper</td>
-            <td>Not started. Dusk models salvaged spares in simulation only.</td>
+            <td>
+              Not started. <code>RedundancyManager</code> can admit a spare into a replica slot after a known-answer
+              test; choosing when is the inventory&#39;s job. Dusk models salvaged spares in simulation only.
+            </td>
           </tr>
           <tr>
             <td>Power accountant</td>
             <td class="m">Paper</td>
             <td>
-              Listed as the F&#180; <code>PowerAccountant</code>, not started.
+              Listed as the F&#180; <code>PowerAccountant</code>, not started. <code>RedundancyManager</code> can put a
+              replica on standby, the hook it will use.
             </td>
           </tr>
         </tbody>
@@ -254,7 +260,8 @@ const crumbs = [
     <ul class="sig-list">
       <li>
         <strong>Mru Flight</strong> runs Layer 1 on spacecraft. The F&#180; components <code>RedundancyManager</code>,{' '}
-        <code>HealthRegistry</code> and <code>ReplicaHost</code> are designed, not built. A launcher for{' '}
+        <code>HealthRegistry</code> and <code>ReplicaHost</code> are built and tested: 37 unit tests, and a system test
+        that gives the demo&#39;s counts on the bench schedules. They have not run on flight hardware. A launcher for{' '}
         <a href="/core/quorum-cli/#opssat">ESA&#39;s OPS-SAT</a> is in the repository.
       </li>
       <li>
