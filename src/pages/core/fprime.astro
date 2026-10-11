@@ -1,0 +1,317 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [
+  { label: 'Docs', href: '/' },
+  { label: 'Core runtime', href: '/core/quorum-crate/' },
+  { label: 'F´ components' },
+];
+const repo = 'https://github.com/mruspace/flight/blob/v0.2.0';
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  code={{
+    name: 'Mru F´ components',
+    repo: 'https://github.com/mruspace/flight',
+    language: 'C++',
+    license: 'Apache-2.0',
+  }}
+  active="fprime"
+  toc={[
+    { href: '#components', label: 'Components' },
+    { href: '#manager', label: 'RedundancyManager' },
+    { href: '#slots', label: 'Spares and standby' },
+    { href: '#state', label: 'Resets' },
+    { href: '#cycle', label: 'One cycle' },
+    { href: '#c', label: 'C interface' },
+    { href: '#tests', label: 'Verification' },
+    { href: '#build', label: 'Build and test' },
+    { href: '#limits', label: 'Limits' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>F&#180; components</h1>
+    <p class="lede">
+      Layer 1 as components for NASA JPL&#39;s F&#180; framework, version 4.4.1. Every decision comes from the{' '}
+      <a href="/core/quorum-crate/">
+        <code>quorum</code> crate
+      </a>
+      , through a C interface that Kani proves equal to it.
+    </p>
+    <div class="row" style="gap: 8px; margin: 8px 0 24px">
+      <span class="pill">F&#180; v4.4.1</span>
+      <span class="pill">C++14</span>
+      <span class="pill sig">
+        <span class="dot"></span>37 unit tests
+      </span>
+      <span class="pill">v0.2.0</span>
+    </div>
+    <p>
+      The source is in <a href={`${repo}/fprime`}>fprime/</a> of mruspace/flight. The requirements and the design were
+      written and approved in F&#180;&#39;s own order, requirements first, then the model, then the code:{' '}
+      <a href={`${repo}/docs/fprime-requirements.md`}>requirements</a>,{' '}
+      <a href={`${repo}/docs/fprime-design-fpp.md`}>design and results</a>.
+    </p>
+
+    <h2 id="components">Components</h2>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Component</th>
+            <th>Kind</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td>
+              <code>RedundancyManager</code>
+            </td>
+            <td>active</td>
+            <td>
+              Asks the replicas for a result each cycle, decides with the core, delivers or rejects, steps the mode down
+              as replicas are lost, and runs known-answer tests.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>HealthRegistry</code>
+            </td>
+            <td>passive</td>
+            <td>Holds the strike record per replica: three outvotes within 200 cycles start a diagnosis.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>ReplicaHost</code>
+            </td>
+            <td>active, one per replica</td>
+            <td>Runs the payload and answers requests and known-answer tests. A disabled host does not answer.</td>
+          </tr>
+          <tr>
+            <td>
+              <code>FaultInjector</code>
+            </td>
+            <td>passive, test builds only</td>
+            <td>
+              Sits between the manager and the replicas in a test topology: silence (kill, hang), a stuck value, and bit
+              flips in a replica&#39;s working memory, with the same random upsets as the demo for a seed.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      In a flight topology the manager connects to the replicas directly, so no test code is in the flight path.
+    </p>
+    <p style="margin-top: 16px">
+      The replicas run as three threads of one deployment. Three processes, and then separate processors, use the same
+      components.
+    </p>
+
+    <h2 id="manager">RedundancyManager</h2>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Input ports</td>
+            <td>
+              <code>schedIn</code> (rate group, once per cycle), <code>replyIn[3]</code>, <code>pingIn</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Output ports</td>
+            <td>
+              <code>requestOut[3]</code>, <code>enableOut[3]</code>, <code>resultOut</code>, <code>healthStrike</code>,{' '}
+              <code>healthClear</code>, <code>pingOut</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Commands</td>
+            <td>
+              <code>SET_POLICY</code>, <code>STANDBY_REPLICA</code>, <code>ADMIT_REPLICA</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Parameters</td>
+            <td>
+              <code>KatPeriod</code> (64 cycles), <code>StateSavePeriod</code> (1,000 cycles; 0 saves on change only)
+            </td>
+          </tr>
+          <tr>
+            <td>Telemetry</td>
+            <td>
+              <code>CurrentPolicy</code>, <code>CurrentMode</code>, <code>LiveReplicas</code>, <code>Retired</code>,{' '}
+              <code>Slots</code> on change; <code>Delivered</code>, <code>Caught</code> each cycle
+            </td>
+          </tr>
+          <tr>
+            <td>Events</td>
+            <td>
+              Mode changes, caught disagreements (throttled), diagnoses, retirements with their reason, standby and
+              admission, the state file, and the halt
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">The full model: RedundancyManager.fpp in fprime/Mru/Components/RedundancyManager.</p>
+    <p style="margin-top: 16px">
+      A replica is retired when its known-answer result is wrong or missing, or after three missed cycles in a row. The
+      event gives the reason: a diagnosis that failed or was not answered, a periodic test on the last replica that
+      failed or was not answered, or lost.
+    </p>
+    <p>
+      F&#180; returns 0 for a parameter that was never loaded. The manager then uses the model&#39;s defaults, so a
+      topology that skips <code>loadParameters()</code> does not run the known-answer test every cycle.
+    </p>
+
+    <h2 id="slots">Spares and standby</h2>
+    <p>
+      Each of the three slots is ACTIVE, STANDBY or RETIRED. Only ACTIVE slots get requests. These follow section 8 of
+      the <a href="https://mru.space/mru-whitepaper.pdf">whitepaper</a>, where salvaged processors join as spares and
+      declining nodes are set aside.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>STANDBY_REPLICA</strong> disables an ACTIVE slot to save power. It is refused if the policy could not
+        run on the slots left. A power accountant will use it; that accountant is not built.
+      </li>
+      <li>
+        <strong>ADMIT_REPLICA</strong> enables a STANDBY slot, or new hardware in a RETIRED slot, and asks for its known
+        answer. The slot becomes ACTIVE only if the right answer arrives by the end of the next cycle.
+      </li>
+    </ul>
+
+    <h2 id="state">Resets</h2>
+    <p>
+      The manager saves the policy, the slot states and the cycle counter when one of them changes, and every{' '}
+      <code>StateSavePeriod</code> cycles. The record is 21 bytes with a CRC-32. It writes a new file, flushes it and
+      renames it over the old one, so a power cut leaves the old state or the new one. At start it restores a valid file
+      and reports it, or starts with all slots ACTIVE and warns. Strikes are not saved: after a reset each replica
+      starts a fresh window.
+    </p>
+
+    <h2 id="cycle">One cycle</h2>
+    <p>The order follows a tick of the demo, so the same seed gives the same counts:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Close the last cycle.</strong> Decide it if it is not yet decided, with a missing reply as absent. Count
+        missed replies, and fail tests that had a full cycle to answer.
+      </li>
+      <li>
+        <strong>Start the next.</strong> Ask every ACTIVE slot. On the last replica, ask for two results on even cycles
+        only, and add the known-answer test every <code>KatPeriod</code> cycles.
+      </li>
+      <li>
+        <strong>Decide as soon as every answer is in.</strong> Strikes, the test of two disagreeing replicas, and the
+        periodic test follow at once.
+      </li>
+    </ul>
+    <p>
+      A replica that dies stops answering, so the manager finds the death by silence. When a death leaves one replica,
+      the cycles until it is marked lost end as caught disagreements. The demo kills its replicas itself and knows at
+      once; this is the one place the counts differ.
+    </p>
+
+    <h2 id="c">C interface</h2>
+    <p>
+      <code>quorum-ffi</code> builds the core as a <code>no_std</code> static library with a C header,{' '}
+      <a href={`${repo}/quorum-ffi/include/quorum.h`}>quorum.h</a>. It is not tied to F&#180;: any C or C++ framework
+      can use it.
+    </p>
+    <pre class="pre" tabindex="0">uint8_t quorum_mode(uint8_t policy, uint32_t alive);
+quorum_verdict quorum_decide(uint8_t policy, const quorum_reply *replies);
+void quorum_health_init(quorum_health *health);
+bool quorum_health_strike(quorum_health *health, uint32_t replica, uint64_t cycle);
+void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
+    <p style="margin-top: 16px">
+      Only plain values cross. The health record lives in the caller&#39;s memory. Out-of-range input gets the safe
+      answer: a policy that is not 0 or 1 halts, an unknown reply kind counts as absent, a replica above 2 changes
+      nothing, and a null pointer does the same. Five Kani proofs show that each function gives the core&#39;s answer
+      for every valid input and the safe answer for every other.
+    </p>
+
+    <h2 id="tests">Verification</h2>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Check</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kani, core and C interface</td>
+            <td class="m">9 of 9 proofs</td>
+          </tr>
+          <tr>
+            <td>C test of quorum.h</td>
+            <td>Sizes, layout and known cases pass</td>
+          </tr>
+          <tr>
+            <td>F&#180; unit tests</td>
+            <td>
+              37, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 19. Built with
+              address and undefined-behavior sanitizers.
+            </td>
+          </tr>
+          <tr class="hl">
+            <td>System test against the demo</td>
+            <td>
+              60 cases: the five <a href="/core/bench/">bench</a> schedules, both policies, three upset rates, two
+              seeds, 4,000 cycles. 36 identical to the demo. In the other 24, a kill that leaves one replica costs 2
+              correct results and adds 3 caught disagreements. Wrong results are identical in all 60.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      All of these run in CI on every change. The expected counts are written by the demo itself, and CI checks they are
+      current.
+    </p>
+
+    <h2 id="build">Build and test</h2>
+    <pre class="pre" tabindex="0"><span class="c"># in a clone of mruspace/flight</span>
+git submodule update --init --recursive
+<span class="k">cd</span> fprime
+python3 -m venv fprime-venv &amp;&amp; . fprime-venv/bin/activate
+pip install -r requirements.txt
+fprime-util generate &amp;&amp; fprime-util build
+fprime-util generate --ut &amp;&amp; fprime-util check --all</pre>
+    <p style="margin-top: 16px">
+      The build calls <code>cargo</code> to compile the core, so it needs a Rust toolchain. On macOS 27, the CMake that
+      F&#180; v4.4.1 pins fails; CMake 4.4 works. Linux works with the pinned version.
+    </p>
+
+    <h2 id="limits">Limits</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>Not on flight hardware.</strong> The components run in tests on general-purpose processors. The{' '}
+        <a href="/concepts/architecture/">architecture status</a> keeps Layer 1 at Prototype.
+      </li>
+      <li>
+        <strong>No reference deployment yet.</strong> The system test wires the four components itself; a full F&#180;
+        deployment with ground data is planned.
+      </li>
+      <li>
+        <strong>Not built:</strong> the retry of a cycle after a disagreement on two replicas (the whitepaper&#39;s
+        &quot;dual with checkpointing&quot;), the health score by error rate and response time, the power accountant,
+        and memory scrubbing.
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

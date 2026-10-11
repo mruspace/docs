@@ -63,7 +63,7 @@ export const NAV: NavGroup[] = [
   {
     title: 'Integrations',
     items: [
-      { id: 'fprime', label: 'F´ components', href: '/core/quorum-crate/' },
+      { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
       { id: 'opssat', label: 'OPS-SAT launcher', href: '/core/quorum-cli/#opssat' },
     ],
   },
@@ -109,6 +109,13 @@ export const PAGES: DocPage[] = [
     updated: '11 Oct 2026',
     source: 'demo/src/main.rs',
     file: 'src/pages/core/quorum-cli.astro',
+  },
+  {
+    path: '/core/fprime/',
+    short: 'F´ components',
+    updated: '11 Oct 2026',
+    source: 'fprime/Mru/Components',
+    file: 'src/pages/core/fprime.astro',
   },
   {
     path: '/core/bench/',
