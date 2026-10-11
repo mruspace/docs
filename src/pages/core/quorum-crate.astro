@@ -38,14 +38,14 @@ const crumbs = [
       <span class="pill sig">
         <span class="dot"></span>4 Kani proofs
       </span>
-      <span class="pill">v0.1.1</span>
+      <span class="pill">v0.2.0</span>
     </div>
 
     <h2 id="install">Install</h2>
     <p>The crate is not on crates.io yet. Depend on the repository at a tag:</p>
     <pre class="pre" tabindex="0"><span class="c"># Cargo.toml</span>
 [dependencies]
-quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.1.1"</span> {'}'}</pre>
+quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.2.0"</span> {'}'}</pre>
 
     <h2 id="example">Example</h2>
     <pre
@@ -185,7 +185,13 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
     <p>
       Strike record per replica. <code>Health::new()</code> is <code>const</code>. <code>strike(i, tick)</code> returns{' '}
       <code>true</code> when replica <code>i</code> has three strikes inside the window and must be diagnosed.{' '}
-      <code>clear(i)</code> forgets its strikes after it passes.
+      <code>clear(i)</code> forgets its strikes after it passes. <code>to_raw()</code> and{' '}
+      <code>Health::from_raw(strikes, count)</code> turn the record into plain arrays and back, to save it across a
+      reset or hand it to C.
+    </p>
+    <p>
+      From C or C++, use the <a href="/core/fprime/#c">C interface</a>, <code>quorum.h</code>. Kani proves that each of
+      its functions gives this crate&#39;s answer.
     </p>
 
     <h2 id="proofs">Kani proofs</h2>
