@@ -117,6 +117,6 @@ export const PAGES: DocPage[] = [
     source: 'scripts/bench.sh',
     file: 'src/pages/core/bench.astro',
   },
-  { path: '/simulation/dusk/', short: 'Dusk', updated: '29 Sep 2026', file: 'src/pages/simulation/dusk.astro' },
+  { path: '/simulation/dusk/', short: 'Dusk', updated: '11 Oct 2026', file: 'src/pages/simulation/dusk.astro' },
   { path: '/lab/2049/', short: 'Mru 2049', updated: 'Sep 2026', file: 'src/pages/lab/2049.astro' },
 ];

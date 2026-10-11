@@ -20,6 +20,7 @@ const crumbs = [
     { href: '#limits', label: 'Limits' },
     { href: '#sensor', label: 'Radiation sensor' },
     { href: '#output', label: 'Output' },
+    { href: '#resets', label: 'Resets and power cuts' },
     { href: '#opssat', label: 'On OPS-SAT' },
   ]}
 >
@@ -40,7 +41,8 @@ const crumbs = [
    [--max-memory-mb M] [--max-cpu-seconds S] [--cpu-percent P]
    [--max-seconds S] [--reply-timeout-ms T]
    [--sensor-mb M] [--sensor-every N]
-   [--log file.csv] [--progress-every N] [--summary file.txt]</pre>
+   [--log file.csv] [--progress-every N] [--summary file.txt]
+   [--checkpoint file] [--checkpoint-every N]</pre>
     <p style="margin-top: 16px">An unknown option prints this list. Every run is reproducible from its seed.</p>
 
     <h2 id="run">Run settings</h2>
@@ -197,6 +199,24 @@ const crumbs = [
       or corrupt fault, it adds a <code>detection:</code> line: the faults injected, how many the voter caught, and the
       mean and longest ticks from fault to first reaction. The <a href="/core/bench/">bench</a> runs this program over a
       matrix of faults.
+    </p>
+
+    <h2 id="resets">Resets and power cuts</h2>
+    <p>
+      <code>--checkpoint file</code> saves the run&#39;s state every <code>--checkpoint-every</code> ticks (default
+      100). The voter writes a new file, flushes it to storage and renames it over the old one, so a power cut leaves
+      either the old checkpoint or the new one. It writes out and syncs the event log first.
+    </p>
+    <p>
+      After a reset, the same command resumes from the checkpoint. Dead, stuck and hung replicas stay that way. The
+      ticks after the last checkpoint run again and give the same results, so the run ends with the same counts as one
+      that was never interrupted. A <code>resumed</code> line in the log marks where it picked up. A checkpoint from a
+      run with other options is refused. A finished run removes its checkpoint.
+    </p>
+    <p>
+      The scenario checks test this on every change: they kill the voter with <code>kill -9</code> in the middle of a
+      run and compare the counts. <code>scripts/board.sh</code> runs the same test on a board, with reboots or power
+      cuts.
     </p>
 
     <h2 id="opssat">On OPS-SAT</h2>
