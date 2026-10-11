@@ -24,6 +24,7 @@ const results = 'https://github.com/mruspace/flight/tree/main/bench/results';
     { href: '#hosts', label: 'Hosts' },
     { href: '#limits', label: 'Limits' },
     { href: '#run', label: 'Run it' },
+    { href: '#model', label: 'Model check' },
     { href: '#next', label: 'What comes next' },
   ]}
 >
@@ -460,14 +461,32 @@ cargo run --release -p bench <span class="c"># the cost of the core only</span><
       processor, commit and build flags. The same seeds give the same counts on every run.
     </p>
 
+    <h2 id="model">Model check</h2>
+    <p>
+      <code>dusk --bench</code> replays these schedules through <a href="/simulation/dusk/">Dusk</a>&#39;s policy model
+      with the same deaths, upset rate and self-check coverage, and compares the means. On each host&#39;s results, 17
+      of 18 rows agree within 3 standard errors on both correct and wrong results. The 18th, the shrinking quorum&#39;s
+      correct results in the common-mode schedule at 0.01, is 3.4 standard errors low. Its two phases, rerun over 200
+      seeds, matched the model: 40.38 results lost against 40.42 expected with two replicas, and 19.17 caught and 0.90
+      wrong against 19.00 and 1.00 with one.
+    </p>
+    <p>
+      This checks the policy model against the code. It does not calibrate the environment: the bench sets the upset
+      rate and the failure times itself. The stuck and last-stuck schedules are not modeled, because Dusk has only
+      processors that die, not ones that return wrong values.
+    </p>
+
     <h2 id="next">What comes next</h2>
     <ul class="sig-list">
       <li>
-        <strong>Calibrate Dusk</strong> with these results. A <code>dusk --calibrate</code> option that reads the bench
-        JSON is planned.
+        <strong>Flight-class boards.</strong> The same bench on target-class processors, with reboots and power cuts.
+        The scripts and procedure are in{' '}
+        <a href="https://github.com/mruspace/flight/blob/main/docs/board.md">docs/board.md</a>. No board run has been
+        done yet.
       </li>
       <li>
-        <strong>Flight-class boards.</strong> The same bench on target-class processors, with resets and power cuts.
+        <strong>Calibrate Dusk&#39;s environment</strong> with real upset and failure data, from a radiation beam test
+        or from flight.
       </li>
     </ul>
     <DocsEnd />
