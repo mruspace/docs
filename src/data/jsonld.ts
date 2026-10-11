@@ -26,7 +26,7 @@ const organization = (): Organization => ({
   url: `${SITE.www}/`,
   logo: { '@type': 'ImageObject', url: `${SITE.www}/assets/icon-512.png`, width: '512', height: '512' },
   email: SITE.email,
-  sameAs: ['https://x.com/mruspace', SITE.github, 'https://doi.org/10.5281/zenodo.20579438'],
+  sameAs: ['https://x.com/mruspace', SITE.github, 'https://doi.org/10.5281/zenodo.20579437'],
 });
 
 export function buildGraph(meta: PageMeta, crumbs?: Crumb[], code?: Code): Graph {
