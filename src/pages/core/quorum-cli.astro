@@ -37,7 +37,7 @@ const crumbs = [
     <h2 id="synopsis">Synopsis</h2>
     <pre class="pre" tabindex="0">quorum [--policy shrink|tmr] [--ticks N] [--seed S]
    [--upset-rate R] [--common-mode C] [--kat-period P]
-   [--fault kill|corrupt|stuck|hang|sensor:I@T] ... [--faults-file F]
+   [--fault kill|corrupt|stuck|hang|sensor:I@T | stuckbit:I@T/LOC.BIT.V] ... [--faults-file F]
    [--max-memory-mb M] [--max-cpu-seconds S] [--cpu-percent P]
    [--max-seconds S] [--reply-timeout-ms T]
    [--sensor-mb M] [--sensor-every N]
@@ -120,7 +120,20 @@ const crumbs = [
           </tr>
           <tr>
             <td class="m">corrupt</td>
-            <td>One bit flips in the replica&#39;s working memory during a computation.</td>
+            <td>
+              One bit flips in the replica&#39;s working memory during its next computation. (In v0.2.0, a corrupt fault
+              on an odd tick in self-check mode was lost. Fixed after v0.2.0.)
+            </td>
+          </tr>
+          <tr>
+            <td class="m">stuckbit</td>
+            <td>
+              <code>stuckbit:I@T/LOC.BIT.V</code>: from tick T, bit BIT of LOC is forced to V (0 or 1), in both
+              self-check runs and in the known-answer test. LOC is <code>in</code> (the input, bits 0 to 63),{' '}
+              <code>block</code> (the 4 KiB working block, bits 0 to 32767), <code>acc</code> (the hash accumulator, 0
+              to 63) or <code>out</code> (the result, 0 to 63). Added after v0.2.0. See{' '}
+              <a href="/core/bench/#kat">known-answer test coverage</a>.
+            </td>
           </tr>
           <tr>
             <td class="m">sensor</td>
@@ -204,9 +217,9 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
     </p>
     <p style="margin-top: 16px">
       <code>last_useful</code> is the tick of the last correct result. With a scheduled stuck, hang or corrupt fault,
-      the output adds a <code>detection:</code> line: the faults injected, how many the voter caught, and the mean and
-      longest ticks from fault to first reaction. The <a href="/core/bench/">bench</a> runs this program over a matrix
-      of faults.
+      the output adds a <code>detection:</code> line (also for <code>stuckbit</code>, after v0.2.0): the faults
+      injected, how many the voter caught, and the mean and longest ticks from fault to first reaction. The{' '}
+      <a href="/core/bench/">bench</a> runs this program over a matrix of faults.
     </p>
 
     <h2 id="resets">Resets and power cuts</h2>

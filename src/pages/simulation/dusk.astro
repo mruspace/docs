@@ -2,6 +2,7 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { t, ci } from '../../data/claims';
 
 const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/simulation/dusk/' }, { label: 'Dusk' }];
 ---
@@ -16,6 +17,7 @@ const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/sim
     { href: '#model', label: 'The fault model' },
     { href: '#results', label: 'Default results' },
     { href: '#definitions', label: 'What the columns mean' },
+    { href: '#baselines', label: 'Baselines' },
     { href: '#sweep', label: 'Sweeps' },
     { href: '#ground', label: 'Ground support' },
     { href: '#bench', label: 'Checked against the bench' },
@@ -44,12 +46,12 @@ const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Simulation', href: '/sim
       tabindex="0"
     >cargo run --release --bin dusk                 <span class="c"># the default scenario, about 2 s</span>
 cargo run --release --bin dusk -- --spares 2   <span class="c"># add salvaged processors</span>
-cargo run --release --bin dusk -- --sweep      <span class="c"># sensitivity, about 1 minute</span>
+cargo run --release --bin dusk -- --sweep      <span class="c"># sensitivity and cold standby, about 2 minutes</span>
 cargo run --release --bin dusk -- --ground     <span class="c"># against TMR with a ground team, about 12 s</span>
 cargo run --release --bin charts               <span class="c"># redraw the charts and data.json, about 2 minutes</span></pre>
     <p style="margin-top: 16px">
-      The package has two programs, so <code>cargo run</code> needs <code>--bin</code>. Times are for an Apple M4 with
-      10 cores. Results depend only on the seed, never on the thread count.
+      The package has two programs. <code>dusk</code> is the default, and <code>--bin charts</code> redraws the charts.
+      Times are for an Apple M4 with 10 cores. Results depend only on the seed, never on the thread count.
     </p>
 
     <h2 id="options">Options</h2>
@@ -123,6 +125,14 @@ cargo run --release --bin charts               <span class="c"># redraw the char
             <td class="m">0.5</td>
             <td>Lone output vs a vote</td>
           </tr>
+          <tr>
+            <td class="m">--cold-aging</td>
+            <td class="m">0.1 and 1.0</td>
+            <td>
+              How fast an unpowered spare ages, relative to a powered one. The report shows both ends; give a value to
+              show one.
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -151,19 +161,29 @@ cargo run --release --bin charts               <span class="c"># redraw the char
     </ul>
 
     <h2 id="results">Default results</h2>
-    <pre class="pre" tabindex="0">policy              useful      p10      p50      p90      service   wrong days
-                    mean y                                  mean y   mean / run
-fixed TMR             99.0     37.6     92.7    168.9         99.0        0.000
-standby simplex       83.1     38.4     78.3    134.0        166.4        0.603
-shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>        166.4        0.246</pre>
+    <pre
+      class="pre"
+      tabindex="0"
+    >policy                     useful      p10      p50      p90      service   wrong days     risk
+                           mean y                                  mean y   mean / run   P(&gt;=1)
+fixed TMR                    99.0     37.6     92.7    168.9         99.0        0.000     0.0%
+standby simplex              83.1     38.4     78.3    134.0        166.4        0.603    43.2%
+shrinking quorum            <span class="s">132.6     64.3    126.6    208.3</span>        166.4        0.246    20.1%
+TMR + unchecked simplex     166.2     76.9    156.7    267.9        166.4       24.715    87.2%
+cold standby, aging 0.1     144.7     69.7    139.3    226.7        289.8        1.043    61.3%
+cold standby, aging 1.0      83.1     38.4     78.3    134.0        166.4        0.603    43.2%</pre>
     <p style="margin-top: 16px">
-      1.34× the useful work of fixed TMR in total (95% CI 1.33× to 1.35×). This assumes no ground support after launch.
-      The gain falls to 1.00× when support never ends. See <a href="#ground">Ground support</a>. Never less on any
-      single mission, by construction: the two policies are identical until fixed TMR stops.
+      {t('dusk.work_vs_tmr')} the useful work of fixed TMR in total (95% CI {ci('dusk.work_vs_tmr')}). This assumes no
+      ground support after launch. The gain falls to {t('dusk.ground.never')} when support never ends. See{' '}
+      <a href="#ground">Ground support</a>. Never less on any single mission, by construction: the two policies are
+      identical until fixed TMR stops. Fixed TMR comes out ahead only if one wrong result costs more than{' '}
+      {t('dusk.break_even_years')} years of useful work (95% CI {ci('dusk.break_even_years')}), next to a risk of{' '}
+      {t('dusk.risk.shrink')} against {t('dusk.risk.tmr')}.
     </p>
     <p>
-      Standby simplex is the nearest model here of dual-string with autonomous switchover. It runs one self-checking
-      processor at a time and swaps in the next when it dies.
+      Cold standby is the nearest model here of dual-string with autonomous switchover. Standby simplex is the same
+      design with spares that age as fast as a powered processor, so it equals cold standby at aging 1.0. See{' '}
+      <a href="#baselines">Baselines</a>.
     </p>
 
     <h2 id="definitions">What the columns mean</h2>
@@ -176,8 +196,8 @@ shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>    
       <li>
         <strong>Useful.</strong> The sum over days of throughput credit for a correct delivered result: 1.0 for a vote
         day with at most one upset, 1.0 for a pair day with no upset, 0.5 (<code>--selfcheck-throughput</code>) for a
-        single self-check day with no upset, and 0 for lost, wrong and idle days. Shown as the mean in years, with the
-        10th, 50th and 90th percentiles.
+        single self-check day with no upset, 1.0 for an unchecked day with no upset, and 0 for lost, wrong and idle
+        days. Shown as the mean in years, with the 10th, 50th and 90th percentiles.
       </li>
       <li>
         <strong>Service.</strong> The first day the policy can never produce output again, or the horizon. For fixed
@@ -187,7 +207,10 @@ shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>    
       <li>
         <strong>Wrong days.</strong> Days whose delivered result was corrupted by an upset that nothing caught. One day
         is one result. Only a lone processor can make one: its self-check misses an upset with probability 1 minus{' '}
-        <code>--coverage</code>. Shown as the mean per mission.
+        <code>--coverage</code>, and an unchecked processor delivers every upset. Shown as the mean per mission.
+      </li>
+      <li>
+        <strong>Risk.</strong> The share of missions with at least one wrong day, with a paired bootstrap 95% CI.
       </li>
     </ul>
     <p style="margin-top: 16px">
@@ -195,12 +218,38 @@ shrinking quorum     <span class="s">132.6     64.3    126.6    208.3</span>    
       delivers nothing.
     </p>
 
-    <!-- DUSK-BASELINES -->
+    <h2 id="baselines">Baselines</h2>
+    <p>
+      Fixed TMR is one baseline, not what most spacecraft fly. Two more act with no ground team, on the same fault
+      histories.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>TMR + unchecked simplex</strong> steps down on its own, but its last processor does not check itself. It
+        isolates the value of self-check. The shrinking quorum does {t('dusk.work_vs_unchecked')} of its useful work and
+        makes {t('dusk.wrong_vs_unchecked')} of its wrong results (95% CI {ci('dusk.wrong_vs_unchecked')}). Risk:{' '}
+        {t('dusk.risk.unchecked')} against {t('dusk.risk.shrink')}.
+      </li>
+      <li>
+        <strong>Cold standby</strong> keeps one processor powered and switches on the next, in order, when it dies. The
+        active one self-checks. Here it has three strings, on the same hardware as TMR. Correlated deaths follow the
+        powered fault history, which slightly under-counts them for an unpowered spare.
+      </li>
+    </ul>
+    <p style="margin-top: 16px">
+      How fast an unpowered spare ages is not known, so <code>--sweep</code> varies it from 0.1 to 1.0 of the powered
+      rate. Against cold standby, the shrinking quorum does {t('dusk.work_vs_cold.01')} the useful work at 0.1 (95% CI{' '}
+      {ci('dusk.work_vs_cold.01')}) and {t('dusk.work_vs_cold.10')} at 1.0 (95% CI {ci('dusk.work_vs_cold.10')}). Cold
+      standby does more useful work below an aging rate of about {t('dusk.cold.crossing')}. At every rate it has more
+      missions with a wrong result: {t('dusk.risk.cold_10')} to {t('dusk.risk.cold_01')}, against{' '}
+      {t('dusk.risk.shrink')}. With two strings (<code>--nodes 2</code>), the shrinking quorum does{' '}
+      {t('dusk.nodes2.work_vs_cold.01')} to {t('dusk.nodes2.work_vs_cold.10')} the useful work of cold standby.
+    </p>
 
     <h2 id="sweep">Sweeps</h2>
     <p>
-      <code>--sweep</code> varies each parameter the model cannot pin down. Across every row, the gain over fixed TMR
-      stays between 1.11× and 1.68×. Every row assumes no ground support after launch.
+      <code>--sweep</code> varies each parameter the model cannot pin down. Across every row, the gain over fixed TMR is{' '}
+      {t('dusk.sweep.range')}. Every row assumes no ground support after launch.
     </p>
 
     <h2 id="ground">Ground support</h2>

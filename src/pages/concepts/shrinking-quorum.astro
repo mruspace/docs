@@ -2,6 +2,7 @@
 import DocsLayout from '../../layouts/DocsLayout.astro';
 import DocsEnd from '../../components/DocsEnd.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { t, ci } from '../../data/claims';
 
 const crumbs = [
   { label: 'Docs', href: '/' },
@@ -196,8 +197,9 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs
         <a href="/core/bench/#results">Bench</a>.
       </li>
       <li>
-        <strong>Dusk.</strong> 10,000 simulated missions. The two policies are identical until fixed TMR stops, by
-        construction of the model, and a unit test checks it over 200 seeds. See <a href="/simulation/dusk/">Dusk</a>.
+        <strong>Dusk.</strong> {t('dusk.runs')} simulated missions. The two policies are identical until fixed TMR
+        stops, by construction of the model, and a unit test checks it over 200 seeds. See{' '}
+        <a href="/simulation/dusk/">Dusk</a>.
       </li>
     </ul>
 
@@ -230,16 +232,18 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs
 
     <h2 id="cost">What it costs</h2>
     <p>
-      On one replica, a stuck fault is caught only by the periodic known-answer test. Until then, a few wrong results
-      can get out. Fixed TMR never produces those, because it never lives that long.
+      On one replica, a stuck fault is caught only by the periodic known-answer test, and only if it changes the
+      test&#39;s answer. Until then, wrong results get out. Fixed TMR never produces those, because it never lives that
+      long. The bench measures how many faults the test catches:{' '}
+      <a href="/core/bench/#kat">known-answer test coverage</a>.
     </p>
     <div class="callout">
       <span class="tiny">Trade</span>
       <span>
-        In Dusk&#39;s default run, fixed TMR comes out ahead only if one wrong result costs more than 136 years of
-        useful work (95% CI 131 to 142). The run assumes no ground support after launch. Planned: a per-mission risk
-        metric from Dusk, the probability of at least one wrong result.
-        <!-- RISK-METRIC -->
+        In Dusk&#39;s default run, {t('dusk.risk.shrink')} of missions (95% CI {ci('dusk.risk.shrink')}) deliver at
+        least one wrong result under the shrinking quorum, and {t('dusk.risk.tmr')} under fixed TMR. Fixed TMR comes out
+        ahead only if one wrong result costs more than {t('dusk.break_even_years')} years of useful work (95% CI{' '}
+        {ci('dusk.break_even_years')}). The run assumes no ground support after launch.
       </span>
     </div>
 
@@ -302,9 +306,11 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs
         : the decision core, in Rust
       </li>
       <li>
-        <a href="/simulation/dusk/">Dusk</a>: 10,000 missions, 1.34× the useful work of fixed TMR. This assumes no
-        ground support after launch. The gain falls to 1.00× when support never ends. See{' '}
-        <a href="/simulation/dusk/#ground">Ground support</a>.
+        <a href="/simulation/dusk/">Dusk</a>: {t('dusk.runs')} missions, {t('dusk.work_vs_tmr')} the useful work of
+        fixed TMR. This assumes no ground support after launch. The gain falls to {t('dusk.ground.never')} when support
+        never ends (<a href="/simulation/dusk/#ground">ground support</a>). Against three-string cold standby it is{' '}
+        {t('dusk.work_vs_cold.01')} to {t('dusk.work_vs_cold.10')}, depending on how fast an unpowered spare ages (
+        <a href="/simulation/dusk/#baselines">baselines</a>).
       </li>
       <li>
         <a href="/concepts/prior-art/">Prior art</a>: TMR, degradable systems, the Space Shuttle and deep-space fault
