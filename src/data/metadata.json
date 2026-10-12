@@ -1,9 +1,9 @@
 [
   {
     "url": "https://docs.mru.space/",
-    "title": "Mru documentation · Mru Docs",
+    "title": "Mru Docs",
     "description": "Reference for Mru's open core: the quorum decision crate, the fault-injection demo, the Dusk simulator and Mru 2049. Apache 2.0.",
-    "ogTitle": "Mru documentation",
+    "ogTitle": "Mru Docs",
     "cardLabel": "Docs",
     "schema": ["WebSite", "TechArticle"]
   },
