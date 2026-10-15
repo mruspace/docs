@@ -73,7 +73,7 @@ export const NAV: NavGroup[] = [
     title: 'Integrations',
     items: [
       { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
-      { id: 'opssat', label: 'OPS-SAT launcher', href: '/core/quorum-cli/#opssat' },
+      { id: 'opssat', label: 'OPS-SAT package', href: '/core/quorum-cli/#opssat' },
     ],
   },
   { title: 'Lab', items: [{ id: '2049', label: 'Mru 2049', href: '/lab/2049/' }] },
