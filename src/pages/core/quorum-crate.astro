@@ -39,14 +39,14 @@ const crumbs = [
       <span class="pill sig">
         <span class="dot"></span>9 Kani proofs
       </span>
-      <span class="pill">v0.2.0</span>
+      <span class="pill">v0.3.1</span>
     </div>
 
     <h2 id="install">Install</h2>
     <p>The crate is not on crates.io yet. Depend on the repository at a tag:</p>
     <pre class="pre" tabindex="0"><span class="c"># Cargo.toml</span>
 [dependencies]
-quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.2.0"</span> {'}'}</pre>
+quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>, tag = <span class="s">"v0.3.1"</span> {'}'}</pre>
 
     <h2 id="example">Example</h2>
     <pre
@@ -274,7 +274,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
         <tbody>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L331">
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs#L331">
                 identical_while_tmr_can_run
               </a>
             </td>
@@ -285,7 +285,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L343">tmr_stops_below_two</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs#L343">tmr_stops_below_two</a>
             </td>
             <td>
               With fewer than two replies present, fixed TMR&#39;s outcome is <code>Halted</code>.
@@ -294,7 +294,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L352">
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs#L352">
                 shrink_halts_only_with_nothing_left
               </a>
             </td>
@@ -305,7 +305,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum/src/lib.rs#L362">
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs#L362">
                 delivers_only_agreed_values
               </a>
             </td>
@@ -317,7 +317,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L314">decide_is_the_core</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum-ffi/src/lib.rs#L314">decide_is_the_core</a>
             </td>
             <td>
               <code>quorum_decide</code> gives the core&#39;s verdict. An unknown reply kind counts as absent.
@@ -326,7 +326,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L330">bad_policy_halts</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum-ffi/src/lib.rs#L330">bad_policy_halts</a>
             </td>
             <td>
               Any other policy code halts <code>quorum_decide</code> and <code>quorum_mode</code>.
@@ -335,7 +335,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L340">mode_is_the_core</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum-ffi/src/lib.rs#L340">mode_is_the_core</a>
             </td>
             <td>
               <code>quorum_mode</code> gives the core&#39;s mode.
@@ -346,7 +346,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L359">strike_is_the_core</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum-ffi/src/lib.rs#L359">strike_is_the_core</a>
             </td>
             <td>
               <code>quorum_health_strike</code> gives the core&#39;s answer and record. A replica above 2 changes
@@ -358,7 +358,7 @@ quorum = {'{'} git = <span class="s">"https://github.com/mruspace/flight"</span>
           </tr>
           <tr>
             <td class="m">
-              <a href="https://github.com/mruspace/flight/blob/v0.2.0/quorum-ffi/src/lib.rs#L384">clear_is_the_core</a>
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/quorum-ffi/src/lib.rs#L384">clear_is_the_core</a>
             </td>
             <td>
               <code>quorum_health_clear</code> gives the core&#39;s record. A replica above 2 changes nothing.
