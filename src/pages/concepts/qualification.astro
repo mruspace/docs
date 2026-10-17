@@ -112,8 +112,9 @@ const crumbs = [
           <tr>
             <td>Bench</td>
             <td>
-              300 runs per host with injected faults on three general-purpose processors. Not radiation testing, not
-              target hardware. See <a href="/core/bench/">Bench</a>.
+              300 runs per host with injected faults on three general-purpose processors, and a known-answer test
+              coverage campaign on the last replica. Not radiation testing, not target hardware. See{' '}
+              <a href="/core/bench/">Bench</a>.
             </td>
             <td>NPR 7150.2, ECSS-E-ST-40C</td>
           </tr>
@@ -122,6 +123,18 @@ const crumbs = [
             <td>
               37 unit tests of the F&#180; components, and a 60-case system test against the demo&#39;s counts. Not run
               on flight hardware. See <a href="/core/fprime/#tests">F&#180; components</a>.
+            </td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>F&#180; requirements and design notes</td>
+            <td>
+              Drafts in the flight repo: numbered requirements with a verification method each, and the design notes.
+              Not baselined or reviewed by a program. See{' '}
+              <a href="https://github.com/mruspace/flight/blob/v0.3.1/docs/fprime-requirements.md">
+                fprime-requirements.md
+              </a>
+              .
             </td>
             <td>NPR 7150.2, ECSS-E-ST-40C</td>
           </tr>
@@ -140,6 +153,16 @@ const crumbs = [
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td>Hardware-in-the-loop testing on target-class processors</td>
+            <td class="m">Not started</td>
+            <td>NPR 7150.2, ECSS-E-ST-40C</td>
+          </tr>
+          <tr>
+            <td>Radiation testing</td>
+            <td class="m">Not started</td>
+            <td>Hardware topic, outside the four software standards above</td>
+          </tr>
           <tr>
             <td>Software classification and criticality</td>
             <td class="m">Not started</td>
@@ -161,12 +184,6 @@ const crumbs = [
             <td>NPR 7150.2, ECSS-Q-ST-80C</td>
           </tr>
           <tr>
-            <td>Rust toolchain qualification plan: TODO</td>
-            <td class="m">Not started</td>
-            <td>NPR 7150.2, ECSS-Q-ST-80C</td>
-          </tr>
-          <!-- TODO: Rust toolchain qualification plan. Write it, then update this row. -->
-          <tr>
             <td>Coding standard compliance</td>
             <td class="m">Not started</td>
             <td>NPR 7150.2, ECSS-Q-ST-80C</td>
@@ -185,7 +202,7 @@ const crumbs = [
       </table>
     </div>
     <p class="tiny">
-      Status as of 11 Oct 2026, flight v0.2.0. The F&#180; components and the C interface have numbered requirements,
+      Status as of 17 Oct 2026, flight v0.3.1. The F&#180; components and the C interface have numbered requirements,
       each with a verification method, but no trace to mission or standard requirements.
     </p>
 

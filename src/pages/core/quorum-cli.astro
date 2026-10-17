@@ -122,7 +122,7 @@ const crumbs = [
             <td class="m">corrupt</td>
             <td>
               One bit flips in the replica&#39;s working memory during its next computation. (In v0.2.0, a corrupt fault
-              on an odd tick in self-check mode was lost. Fixed after v0.2.0.)
+              on an odd tick in self-check mode was lost. Fixed in v0.3.0.)
             </td>
           </tr>
           <tr>
@@ -131,7 +131,7 @@ const crumbs = [
               <code>stuckbit:I@T/LOC.BIT.V</code>: from tick T, bit BIT of LOC is forced to V (0 or 1), in both
               self-check runs and in the known-answer test. LOC is <code>in</code> (the input, bits 0 to 63),{' '}
               <code>block</code> (the 4 KiB working block, bits 0 to 32767), <code>acc</code> (the hash accumulator, 0
-              to 63) or <code>out</code> (the result, 0 to 63). Added after v0.2.0. See{' '}
+              to 63) or <code>out</code> (the result, 0 to 63). Added in v0.3.0. See{' '}
               <a href="/core/bench/#kat">known-answer test coverage</a>.
             </td>
           </tr>
@@ -209,15 +209,15 @@ const crumbs = [
       prints:
     </p>
     <pre class="pre" tabindex="0">policy=shrink ticks=20000 seed=1 upset_rate=0.001
-<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000
-footprint: voter_max_rss=1920KiB replica_max_rss=1808KiB cpu=0.48s wall=0.46s
+<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000 kat_tests=174
+footprint: voter_max_rss=1936KiB replica_max_rss=1824KiB cpu=0.429s wall=0.420s
 limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_timeout=2000ms</pre>
     <p class="tiny" style="margin-top: 10px">
-      flight v0.2.0 on an Apple M4. The footprint line varies by host.
+      flight v0.3.1 on an Apple M4. The footprint line varies by host.
     </p>
     <p style="margin-top: 16px">
       <code>last_useful</code> is the tick of the last correct result. With a scheduled stuck, hang or corrupt fault,
-      the output adds a <code>detection:</code> line (also for <code>stuckbit</code>, after v0.2.0): the faults
+      the output adds a <code>detection:</code> line (also for <code>stuckbit</code>, since v0.3.0): the faults
       injected, how many the voter caught, and the mean and longest ticks from fault to first reaction. The{' '}
       <a href="/core/bench/">bench</a> runs this program over a matrix of faults.
     </p>
@@ -242,13 +242,17 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
 
     <h2 id="opssat">On OPS-SAT</h2>
     <p>
-      For the experiment registered with ESA&#39;s OPS-SAT Space Lab for OPS-SAT PRETTY (exp4051, October 2026). Nothing
-      has run on the satellite yet. <code>opssat/run</code> is the entry point the OPS-SAT runner executes: the
-      shrinking quorum and fixed TMR one after the other, same seed and fault schedule, all output in a folder for
-      downlink, finished inside a five-minute window. <code>opssat/package.sh</code> builds the package from a
-      checksum-verified release binary. <code>opssat/run.sh</code> starts, checks and stops a long run on any Linux
-      system. Tagged releases ship each static Linux binary (three ARM, one x86_64) with both launchers, the fault
-      schedules and the operations note.
+      For the experiment registered with ESA&#39;s OPS-SAT Space Lab for OPS-SAT PRETTY (exp4051, October 2026). ESA ran
+      the v0.3.1 package in its software environment on 15 October 2026, and TU Graz ran it on the PRETTY FlatSat, the
+      flight processor on the bench, on 16 October 2026. Both runs exited 0, every fault landed on its scheduled tick,
+      and no result was wrong. On the flight processor at the 5% CPU share the voter made about 45 ticks per second (
+      <a href="https://github.com/mruspace/flight/blob/main/docs/opssat.md">operations note</a>, with the measured
+      results). Nothing has run on the satellite yet; the run in orbit is next. <code>opssat/run</code> is the entry
+      point the OPS-SAT runner executes: the shrinking quorum and fixed TMR one after the other, same seed and fault
+      schedule, all output in a folder for downlink, finished inside a five-minute window.{' '}
+      <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
+      <code>opssat/run.sh</code> starts, checks and stops a long run on any Linux system. Tagged releases ship each
+      static Linux binary (three ARM, one x86_64) with both launchers, the fault schedules and the operations note.
     </p>
     <DocsEnd />
   </article>
