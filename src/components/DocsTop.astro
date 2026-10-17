@@ -4,7 +4,7 @@
 // On phones the bar shows the brand and a Menu button, as on mru.space; the
 // menu holds the docs nav, the header links, then the terms link and the
 // theme toggle (the sidebar's foot, which phones do not show).
-import MarkSvg from './MarkSvg.astro';
+import Mark from './Mark.astro';
 import DocsNav from './DocsNav.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import { SITE } from '../data/site';
@@ -26,34 +26,7 @@ const links = [
 <header class="mru part docs-top">
   <div class="bar" style="padding-inline: var(--gut); max-width: 1440px; margin: 0 auto">
     <a class="brand" href="/" aria-label="Mru docs home">
-      {/* The animated mark, as Mark.astro draws it, but from the 96 px copies
-          (mru-96.gif, about 140 KB, sharp at 2x) in place of the 2 MB
-          originals, which would hold up the page text on a slow link. */}
-      <span class="mark-anim">
-        <picture>
-          <img
-            class="on-light"
-            src="/assets/mru-light-96.gif"
-            alt=""
-            width="96"
-            height="96"
-            loading="lazy"
-            decoding="async"
-            fetchpriority="low"
-          />
-          <img
-            class="on-dark"
-            src="/assets/mru-96.gif"
-            alt=""
-            width="96"
-            height="96"
-            loading="lazy"
-            decoding="async"
-            fetchpriority="low"
-          />
-        </picture>
-      </span>
-      <MarkSvg class="mark-static" />
+      <Mark small alt="" />
       <span class="word">Mru</span>
       <span class="sub">Docs</span>
     </a>
