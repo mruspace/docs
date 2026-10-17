@@ -42,7 +42,8 @@ import DocsLayout from '../layouts/DocsLayout.astro';
         <h3 class="h3">F&#180; and OPS-SAT</h3>
         <p class="small soft" style="margin: 10px 0 0">
           F&#180; components around the Rust core, a C interface for other frameworks, and the operations note and
-          package for the registered OPS-SAT PRETTY experiment.
+          package for the OPS-SAT PRETTY experiment (exp4051): software environment and FlatSat tests passed, the run in
+          orbit next.
         </p>
       </a>
       <a class="card" href="/lab/2049/" style="text-decoration: none">
@@ -66,12 +67,12 @@ cargo run --release --bin quorum -- --policy shrink --ticks 20000 --seed 1 \
       Run the same seed with <code>--policy tmr</code> to compare. The first two lines of each run:
     </p>
     <pre class="pre" tabindex="0">policy=shrink ticks=20000 seed=1 upset_rate=0.001
-<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000
+<span class="s">useful=14989</span> detected=11 wrong=0 halted_at=never alive_at_end=1 stopped=completed last_useful=20000 kat_tests=174
 
 policy=tmr ticks=20000 seed=1 upset_rate=0.001
-useful=9990 detected=9 wrong=0 <span class="s">halted_at=10000</span> alive_at_end=1 stopped=halted last_useful=9999</pre>
+useful=9990 detected=9 wrong=0 <span class="s">halted_at=10000</span> alive_at_end=1 stopped=halted last_useful=9999 kat_tests=0</pre>
     <p class="tiny" style="margin-top: 10px">
-      flight v0.2.0 on an Apple M4. The counts depend only on the seed.
+      flight v0.3.1 on an Apple M4. The counts depend only on the seed.
     </p>
     <p style="margin-top: 16px">
       Fixed TMR halts at tick 10000, when the second replica dies. The shrinking quorum keeps running on the last
