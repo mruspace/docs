@@ -194,7 +194,8 @@ const crumbs = [
     <p>
       <code>--sensor-mb M</code> holds M MB of memory in a known pattern and checks it every <code>--sensor-every</code>{' '}
       ticks (default 1000). Every flipped bit is logged with its location, then repaired. On flight hardware, this
-      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>.
+      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>. In orbit it found
+      one flip, the injected self-test, and no real upset.
     </p>
 
     <h2 id="output">Output</h2>
@@ -242,15 +243,68 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
 
     <h2 id="opssat">On OPS-SAT</h2>
     <p>
-      For the experiment registered with ESA&#39;s OPS-SAT Space Lab for OPS-SAT PRETTY (exp4051, October 2026). ESA ran
-      the v0.3.1 package in its software environment on 15 October 2026, and TU Graz ran it on the PRETTY FlatSat, the
-      flight processor on the bench, on 16 October 2026. Both runs exited 0, every fault landed on its scheduled tick,
-      and no result was wrong. On the flight processor at the 5% CPU share the voter made about 45 ticks per second (
-      <a href="https://github.com/mruspace/flight/blob/main/docs/opssat.md">operations note</a>, with the measured
-      results). Nothing has run on the satellite yet; the run in orbit is next. <code>opssat/run</code> is the entry
-      point the OPS-SAT runner executes: the shrinking quorum and fixed TMR one after the other, same seed and fault
-      schedule, all output in a folder for downlink, finished inside a five-minute window.{' '}
-      <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
+      For experiment exp4051 on ESA&#39;s OPS-SAT PRETTY satellite, run by ESA&#39;s OPS-SAT Space Lab and TU Graz. The
+      same v0.3.1 package ran in orbit on 18 October 2026 at 09:45 UTC, after ESA&#39;s software environment test (15
+      October) and the TU Graz FlatSat test (16 October). Results matched the prediction written before the run: 227 s
+      in total, both runs exit 0, every fault on its scheduled tick, the shrinking quorum 2,745 correct and 0 wrong over
+      5,250 ticks, fixed TMR 239 correct then a detected disagreement on every tick to 4,500. Three software replicas on
+      one processor in user space, scheduled faults, no real upset in the window; not a hardware-redundancy test.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>Host</th>
+            <th>Shrinking quorum</th>
+            <th>Fixed TMR</th>
+            <th>Total</th>
+            <th>Exit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Software environment, 15 Oct 2026</td>
+            <td>ESA Linux VM, ARMv8, two cores</td>
+            <td class="m">14,886 correct, 0 wrong, 29,532 ticks</td>
+            <td class="m">239 correct, detected to tick 19,250</td>
+            <td class="m">222 s</td>
+            <td class="m">0, 0</td>
+          </tr>
+          <tr>
+            <td>FlatSat, 16 Oct 2026</td>
+            <td>SEPP, Cortex-A9, TU Graz</td>
+            <td class="m">2,745 correct, 0 wrong, 5,250 ticks</td>
+            <td class="m">239 correct, detected to tick 4,778</td>
+            <td class="m">224 s</td>
+            <td class="m">0, 0</td>
+          </tr>
+          <tr>
+            <td>In orbit, 18 Oct 2026</td>
+            <td>SEPP, Cortex-A9, OPS-SAT PRETTY</td>
+            <td class="m">2,745 correct, 0 wrong, 5,250 ticks</td>
+            <td class="m">239 correct, detected to tick 4,500</td>
+            <td class="m">227 s</td>
+            <td class="m">0, 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Counts from the summary files and totals from the start and end times in run-info.txt, in the
+      <a href="https://github.com/mruspace/flight/tree/main/opssat/results">result files</a>. The same binary ran on all
+      three hosts; the software environment is a Linux VM, not the flight processor. Fixed TMR delivered 0 wrong results
+      on every host; its last correct result is tick 239, then a detected disagreement on each tick to the tick shown.
+      Both runs overran the 110 s cap by about 3 s because the limit is checked once per tick and the last tick was a 64
+      MB scan; a fix is planned.
+    </p>
+    <p style="margin-top: 16px">
+      On the flight processor at the 5% CPU share the voter made about 45 ticks per second on the FlatSat, and in orbit
+      about 46 for the shrinking quorum and 40 for fixed TMR (
+      <a href="https://github.com/mruspace/flight/blob/main/docs/opssat.md">operations note</a>).{' '}
+      <code>opssat/run</code> is the entry point the OPS-SAT runner executes: the shrinking quorum and fixed TMR one
+      after the other, same seed and fault schedule, all output in a folder for downlink, finished inside a five-minute
+      window. <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
       <code>opssat/run.sh</code> starts, checks and stops a long run on any Linux system. Tagged releases ship each
       static Linux binary (three ARM, one x86_64) with both launchers, the fault schedules and the operations note.
     </p>

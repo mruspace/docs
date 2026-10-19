@@ -73,7 +73,7 @@ export const NAV: NavGroup[] = [
     title: 'Integrations',
     items: [
       { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
-      { id: 'opssat', label: 'OPS-SAT package', href: '/core/quorum-cli/#opssat' },
+      { id: 'opssat', label: 'OPS-SAT run', href: '/core/quorum-cli/#opssat' },
     ],
   },
   { title: 'Lab', items: [{ id: '2049', label: 'Mru 2049', href: '/lab/2049/' }] },
@@ -96,13 +96,13 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/shrinking-quorum/',
     short: 'Shrinking quorum',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     file: 'src/pages/concepts/shrinking-quorum.astro',
   },
   {
     path: '/concepts/architecture/',
     short: 'Architecture status',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     file: 'src/pages/concepts/architecture.astro',
   },
   {
@@ -114,7 +114,7 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/qualification/',
     short: 'Qualification path',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     file: 'src/pages/concepts/qualification.astro',
   },
   {
@@ -127,21 +127,21 @@ export const PAGES: DocPage[] = [
   {
     path: '/core/quorum-cli/',
     short: 'The quorum CLI',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     source: 'demo/src/main.rs',
     file: 'src/pages/core/quorum-cli.astro',
   },
   {
     path: '/core/fprime/',
     short: 'F´ components',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     source: 'fprime/Mru/Components',
     file: 'src/pages/core/fprime.astro',
   },
   {
     path: '/core/bench/',
     short: 'Bench',
-    updated: '11 Oct 2026',
+    updated: '19 Oct 2026',
     source: 'scripts/bench.sh',
     file: 'src/pages/core/bench.astro',
   },

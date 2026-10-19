@@ -575,8 +575,9 @@ const n1 = (v: unknown) => (typeof v === 'number' ? (Number.isInteger(v) ? Strin
         settings, not a model of any orbit.
       </li>
       <li>
-        <strong>Not target hardware.</strong> The hosts are general-purpose processors. Flight-class boards come next.
-        This is why the <a href="/concepts/architecture/">architecture status</a> keeps Layer 1 at Prototype.
+        <strong>Not target hardware.</strong> The bench hosts are general-purpose processors. The quorum demo has run on
+        a flight processor, on the OPS-SAT FlatSat and in orbit, but this bench has not. See the{' '}
+        <a href="/concepts/architecture/">architecture status</a>.
       </li>
       <li>
         <strong>Processes, not separate processors.</strong> The three replicas share one processor and one memory. A
@@ -621,8 +622,9 @@ cargo run --release -p bench <span class="c"># the cost of the core only</span><
       <li>
         <strong>Flight-class boards.</strong> The same bench on target-class processors, with reboots and power cuts.
         The scripts and procedure are in{' '}
-        <a href="https://github.com/mruspace/flight/blob/main/docs/board.md">docs/board.md</a>. No board run has been
-        done yet.
+        <a href="https://github.com/mruspace/flight/blob/main/docs/board.md">docs/board.md</a>. No{' '}
+        <code>scripts/board.sh</code> run has been done yet; the OPS-SAT package ran on the FlatSat and in orbit without
+        reboots or power cuts.
       </li>
       <li>
         <strong>Calibrate Dusk&#39;s environment</strong> with real upset and failure data, from a radiation beam test
