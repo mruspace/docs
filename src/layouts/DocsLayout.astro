@@ -5,6 +5,7 @@ import '../styles/shared/site.css';
 import '../styles/docs.css';
 import Analytics from '../components/Analytics.astro';
 import DocsTop from '../components/DocsTop.astro';
+import NewsBar from '../components/NewsBar.astro';
 import DocsFoot from '../components/DocsFoot.astro';
 import DocsNav from '../components/DocsNav.astro';
 import Toc from '../components/Toc.astro';
@@ -81,6 +82,7 @@ const graph = buildGraph(meta, crumbs, code);
       Skip to content
     </a>
     <div class="mru">
+      <NewsBar href="https://mru.space/research/flight-orbit/">ESA has run Mru Flight on its OPS-SAT satellite</NewsBar>
       <DocsTop active={active} />
       <div class="docs-shell">
         <div class="docs-nav">

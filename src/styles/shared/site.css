@@ -303,3 +303,54 @@ html.js .quorum-fallback {
 html.js .mark-anim:not(.playing) img {
   visibility: hidden;
 }
+
+/* News bar: one line above the header, no dismiss. Remove when the news is old. */
+.news-bar {
+  background: var(--card);
+  border-bottom: 2px solid var(--signal);
+}
+.news-bar .wrap {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.news-bar a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.news-bar .pill {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 4px 9px 3px;
+  border-radius: 999px;
+  background: var(--signal);
+  color: var(--card);
+}
+.news-bar .more {
+  color: var(--signal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.news-bar a:hover .more,
+.news-bar a:focus-visible .more {
+  color: var(--ink);
+}
+/* Narrow screens: the pill, the text and the link each take a line. */
+@media (max-width: 720px) {
+  .news-bar .text,
+  .news-bar .more {
+    flex-basis: 100%;
+  }
+}

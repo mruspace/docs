@@ -1,0 +1,20 @@
+---
+/** One-line news bar above the docs header, as on mru.space. Remove it when the news is old. */
+interface Props {
+  href: string;
+  label?: string;
+}
+const { href, label = 'New' } = Astro.props;
+---
+
+<div class="news-bar">
+  <div class="wrap" style="max-width: 1440px">
+    <a href={href}>
+      <span class="pill">{label}</span>
+      <span class="text">
+        <slot />
+      </span>
+      <span class="more">Read more</span>
+    </a>
+  </div>
+</div>
