@@ -50,7 +50,7 @@
   {
     "url": "https://docs.mru.space/core/quorum-cli/",
     "title": "quorum CLI reference · Mru Docs",
-    "description": "Options for the quorum demo: policy, fault injection (kill, hang, stuck, bit flips), resource limits, radiation sensor and logging.",
+    "description": "Options for the quorum demo: policy, fault injection, resource limits, radiation sensor, logging, and the OPS-SAT package that ran in orbit.",
     "ogTitle": "The quorum program",
     "cardLabel": "Docs · Core runtime",
     "schema": ["TechArticle", "BreadcrumbList"]
