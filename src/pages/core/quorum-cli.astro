@@ -296,7 +296,7 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
       three hosts; the software environment is a Linux VM, not the flight processor. Fixed TMR delivered 0 wrong results
       on every host; its last correct result is tick 239, then a detected disagreement on each tick to the tick shown.
       Both runs overran the 110 s cap by about 3 s because the limit is checked once per tick and the last tick was a 64
-      MB scan; a fix is planned.
+      MB scan; fixed in v0.4.0, where the scan checks the limit every 1 MiB and the sleep stops at the cap.
     </p>
     <p style="margin-top: 16px">
       On the flight processor at the 5% CPU share the voter made about 45 ticks per second on the FlatSat, and in orbit
