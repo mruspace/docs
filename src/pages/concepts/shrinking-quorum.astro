@@ -287,7 +287,9 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs
       </li>
       <li>
         <strong>Input agreement between replicas.</strong> In the demo, all replicas get the same input because it is a
-        function of the tick. Real sensor inputs need an agreement step. Mru does not provide one yet.
+        function of the tick. On one processor, Mru Field answers this by acquiring each input record once and handing
+        the same bytes to every replica (<a href="https://github.com/mruspace/field">mruspace/field</a>, version 0.1.0).
+        Across processors, real sensor inputs still need an agreement step, which Mru does not provide yet.
       </li>
       <li>
         <strong>Replica determinism under interrupts and scheduling.</strong> The replicas must compute the same bits.
