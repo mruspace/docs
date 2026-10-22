@@ -8,7 +8,7 @@ const crumbs = [
   { label: 'Core runtime', href: '/core/quorum-crate/' },
   { label: 'F´ components' },
 ];
-const repo = 'https://github.com/mruspace/flight/blob/v0.3.1';
+const repo = 'https://github.com/mruspace/flight/blob/v0.5.1';
 ---
 
 <DocsLayout
@@ -26,6 +26,7 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.3.1';
     { href: '#slots', label: 'Spares and standby' },
     { href: '#state', label: 'Resets' },
     { href: '#cycle', label: 'One cycle' },
+    { href: '#deployment', label: 'Deployment' },
     { href: '#c', label: 'C interface' },
     { href: '#tests', label: 'Verification' },
     { href: '#build', label: 'Build and test' },
@@ -46,9 +47,9 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.3.1';
       <span class="pill">F&#180; v4.4.1</span>
       <span class="pill">C++14</span>
       <span class="pill sig">
-        <span class="dot"></span>37 unit tests
+        <span class="dot"></span>40 unit tests
       </span>
-      <span class="pill">v0.3.1</span>
+      <span class="pill">v0.5.1</span>
     </div>
     <p>
       The source is in <a href={`${repo}/fprime`}>fprime/</a> of mruspace/flight. The requirements and the design were
@@ -100,6 +101,17 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.3.1';
             <td>
               Sits between the manager and the replicas in a test topology: silence (kill, hang), a stuck value, and bit
               flips in a replica&#39;s working memory, with the same random upsets as the demo for a seed.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>RunRecorder</code>
+            </td>
+            <td>passive, test builds only</td>
+            <td>
+              Stands in for the ground in an experiment: checks every delivered result against the payload computed
+              without a fault, counts correct and wrong results, and reads the manager&#39;s last telemetry for the
+              summary. The manager never sees it.
             </td>
           </tr>
         </tbody>
@@ -202,6 +214,22 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.3.1';
       starts a fresh window.
     </p>
 
+    <h2 id="deployment">Deployment</h2>
+    <p>
+      <code>MruOpsSat</code> is the first F&#180; deployment of the components. It runs them with F&#180;&#39;s own
+      services: the command dispatcher, the event manager, the telemetry database, health pings and a command sequencer
+      (the <code>CdhCore</code> subtopology), driven by a Linux timer every 100 ms. The faults and the policy come from
+      F&#180; command sequences, as an operator would send them. It has no communications stack: events are written as
+      text lines and the summary as a file.
+    </p>
+    <p>
+      It is built as a static, optimized 32-bit ARM binary for the SEPP, the Cortex-A9 payload processor of OPS-SAT
+      PRETTY. In ESA&#39;s OPS-SAT experiment environment, on a laptop under emulation, the package ran full length on
+      22 Oct 2026: 148 seconds, 0 wrong results, the counts of the demo within the system test&#39;s rule, a restore
+      from the state file after a kill, and 1.2% to 1.5% CPU in the timed run. It has not run on the SEPP. See{' '}
+      <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
+    </p>
+
     <h2 id="cycle">One cycle</h2>
     <p>The order follows a tick of the demo, so the same seed gives the same counts:</p>
     <ul class="sig-list">
@@ -265,8 +293,8 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
           <tr>
             <td>F&#180; unit tests</td>
             <td>
-              37, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 19. Built with
-              address and undefined-behavior sanitizers.
+              40, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 19, RunRecorder 3.
+              Built with address and undefined-behavior sanitizers.
             </td>
           </tr>
           <tr class="hl">
@@ -275,6 +303,13 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
               60 cases: the five <a href="/core/bench/">bench</a> schedules, both policies, three upset rates, two
               seeds, 4,000 cycles. 36 identical to the demo. In the other 24, a kill that leaves one replica costs 2
               correct results and adds 3 caught disagreements. Wrong results are identical in all 60.
+            </td>
+          </tr>
+          <tr>
+            <td>Deployment against the demo</td>
+            <td>
+              The <code>MruOpsSat</code> package with short caps: each segment&#39;s counts against the demo on the same
+              faults, the events on their cycles, the restore from the state file, and a second run in the same folder.
             </td>
           </tr>
         </tbody>
@@ -292,7 +327,9 @@ git submodule update --init --recursive
 python3 -m venv fprime-venv &amp;&amp; . fprime-venv/bin/activate
 pip install -r requirements.txt
 fprime-util generate &amp;&amp; fprime-util build
-fprime-util generate --ut &amp;&amp; fprime-util check --all</pre>
+fprime-util generate --ut &amp;&amp; fprime-util check --all
+<span class="c"># the deployment, from the repository root, in the build container</span>
+<span class="k">cd</span> .. &amp;&amp; ./opssat/fprime/build.sh  <span class="c"># static 32-bit ARM build and its sequences</span></pre>
     <p style="margin-top: 16px">
       The build calls <code>cargo</code> to compile the core, so it needs a Rust toolchain. On macOS 27, the CMake that
       F&#180; v4.4.1 pins fails; CMake 4.4 works. Linux works with the pinned version.
@@ -301,13 +338,13 @@ fprime-util generate --ut &amp;&amp; fprime-util check --all</pre>
     <h2 id="limits">Limits</h2>
     <ul class="sig-list">
       <li>
-        <strong>Not on flight hardware.</strong> The components run in tests on general-purpose processors. The OPS-SAT
-        run used the quorum demo, not these components, so they stay at Prototype in the{' '}
-        <a href="/concepts/architecture/">architecture status</a>.
+        <strong>Not on flight hardware.</strong> The components run in tests and in the deployment on general-purpose
+        processors, the ARM build under emulation. The OPS-SAT run used the quorum demo, not these components, so they
+        stay at Prototype in the <a href="/concepts/architecture/">architecture status</a>.
       </li>
       <li>
-        <strong>No reference deployment yet.</strong> The system test wires the four components itself; a full F&#180;
-        deployment with ground data is planned.
+        <strong>No ground link yet.</strong> The first deployment has no communications stack. A deployment with
+        commands and telemetry from the ground is planned.
       </li>
       <li>
         <strong>Not built:</strong> the retry of a cycle after a disagreement on two replicas (the whitepaper&#39;s
