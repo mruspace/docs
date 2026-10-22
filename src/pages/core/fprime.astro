@@ -8,7 +8,7 @@ const crumbs = [
   { label: 'Core runtime', href: '/core/quorum-crate/' },
   { label: 'F´ components' },
 ];
-const repo = 'https://github.com/mruspace/flight/blob/v0.5.1';
+const repo = 'https://github.com/mruspace/flight/blob/v0.6.0';
 ---
 
 <DocsLayout
@@ -47,9 +47,9 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.5.1';
       <span class="pill">F&#180; v4.4.1</span>
       <span class="pill">C++14</span>
       <span class="pill sig">
-        <span class="dot"></span>40 unit tests
+        <span class="dot"></span>44 unit tests
       </span>
-      <span class="pill">v0.5.1</span>
+      <span class="pill">v0.6.0</span>
     </div>
     <p>
       The source is in <a href={`${repo}/fprime`}>fprime/</a> of mruspace/flight. The requirements and the design were
@@ -229,6 +229,14 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.5.1';
       from the state file after a kill, and 1.2% to 1.5% CPU in the timed run. It has not run on the SEPP. See{' '}
       <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
     </p>
+    <p>
+      On one processor the manager and the replicas share the processor. A manager that falls behind used to close
+      cycles before their answers were dispatched, so healthy replicas looked silent and were retired as lost. Since
+      v0.6.0 a cycle that closes late, with other messages still in the manager&#39;s queue or every expected answer
+      missing at once, counts against no replica; with an answer missing it is withheld and counted (MRU-RM-023). In a
+      container starved of processor time, the old rule halted 9 of 15 runs and the new one none; no run gave a wrong
+      result.
+    </p>
 
     <h2 id="cycle">One cycle</h2>
     <p>The order follows a tick of the demo, so the same seed gives the same counts:</p>
@@ -293,7 +301,7 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
           <tr>
             <td>F&#180; unit tests</td>
             <td>
-              40, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 19, RunRecorder 3.
+              44, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 23, RunRecorder 3.
               Built with address and undefined-behavior sanitizers.
             </td>
           </tr>
