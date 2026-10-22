@@ -8,7 +8,7 @@ const crumbs = [
   { label: 'Core runtime', href: '/core/quorum-crate/' },
   { label: 'F´ components' },
 ];
-const repo = 'https://github.com/mruspace/flight/blob/v0.6.0';
+const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
 ---
 
 <DocsLayout
@@ -47,9 +47,9 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.6.0';
       <span class="pill">F&#180; v4.4.1</span>
       <span class="pill">C++14</span>
       <span class="pill sig">
-        <span class="dot"></span>44 unit tests
+        <span class="dot"></span>45 unit tests
       </span>
-      <span class="pill">v0.6.0</span>
+      <span class="pill">v0.7.0</span>
     </div>
     <p>
       The source is in <a href={`${repo}/fprime`}>fprime/</a> of mruspace/flight. The requirements and the design were
@@ -230,6 +230,13 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.6.0';
       <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
     </p>
     <p>
+      A second deployment puts each replica in a process of its own: <code>MruQuorum</code>, the manager process, starts
+      three <code>MruReplica</code> processes, linked through F&#180;&#39;s GenericHub over Unix socket pairs (no
+      network), and pins them to the SEPP&#39;s two cores. The kill is real: the manager sends SIGKILL to a replica
+      process at the start of a cycle. In ESA&#39;s environment under emulation it gave the same counts and events as
+      the first deployment, with the three processes pinned in every segment. It has not run on the SEPP.
+    </p>
+    <p>
       On one processor the manager and the replicas share the processor. A manager that falls behind used to close
       cycles before their answers were dispatched, so healthy replicas looked silent and were retired as lost. Since
       v0.6.0 a cycle that closes late, with other messages still in the manager&#39;s queue or every expected answer
@@ -301,7 +308,7 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
           <tr>
             <td>F&#180; unit tests</td>
             <td>
-              44, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 23, RunRecorder 3.
+              44, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 23, RunRecorder 4.
               Built with address and undefined-behavior sanitizers.
             </td>
           </tr>
