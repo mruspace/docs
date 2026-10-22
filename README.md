@@ -73,7 +73,7 @@ workflow in `.github/workflows/`. `public/CNAME` pins the domain.
 - Code: [Apache License 2.0](./LICENSE).
 - Documentation text: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 - Fonts in `public/fonts/`: SIL Open Font License 1.1 (license files alongside).
-- The **Mru** name and logo are trademarks of Binns Pte. Ltd. and are not
+- The **Mru** name and logo are trademarks of Mru Aerospace, Inc. and are not
   covered by these licenses. See [TRADEMARK.md](./TRADEMARK.md).
 
-© Binns Pte. Ltd.
+© Mru Aerospace, Inc.
