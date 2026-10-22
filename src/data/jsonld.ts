@@ -22,7 +22,7 @@ const organization = (): Organization => ({
   '@type': 'Organization',
   '@id': ORG_ID,
   name: 'Mru',
-  legalName: 'Binns Pte. Ltd.',
+  legalName: 'Mru Aerospace, Inc.',
   url: `${SITE.www}/`,
   logo: { '@type': 'ImageObject', url: `${SITE.www}/assets/icon-512.png`, width: '512', height: '512' },
   email: SITE.email,
