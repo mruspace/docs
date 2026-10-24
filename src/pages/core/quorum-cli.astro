@@ -194,14 +194,14 @@ const crumbs = [
     <p>
       <code>--sensor-mb M</code> holds M MB of memory in a known pattern and checks it every <code>--sensor-every</code>{' '}
       ticks (default 1000). Every flipped bit is logged with its location, then repaired. On flight hardware, this
-      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>. In orbit it found
-      one flip, the injected self-test, and no real upset.
+      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>. In both runs in
+      orbit it found only the injected self-test flip, and no real upset.
     </p>
 
     <h2 id="output">Output</h2>
     <p>
-      <code>--log file.csv</code> writes every event: stuck, hang, lost, retired, cleared, killed, detected, wrong,
-      stopped, halted and sensor flips. <code>--progress-every N</code> adds running totals.{' '}
+      <code>--log file.csv</code> writes every event: stuck, stuck bit, hang, lost, outvoted, retired, cleared, killed,
+      detected, wrong, resumed, stopped, halted and sensor flips. <code>--progress-every N</code> adds running totals.{' '}
       <code>--summary file.txt</code> writes the final report for downlink.
     </p>
     <p>
@@ -298,13 +298,63 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
       Both runs overran the 110 s cap by about 3 s because the limit is checked once per tick and the last tick was a 64
       MB scan; fixed in v0.4.0, where the scan checks the limit every 1 MiB and the sleep stops at the cap.
     </p>
+    <h3 id="opssat-run2">Run 2, 22 October 2026</h3>
+    <p>
+      The v0.4.0 package ran in orbit on 22 October 2026 at 09:49 UTC, after ESA&#39;s software environment and the TU
+      Graz FlatSat on 21 October. Three segments in 136 s. Segment 1: the shrinking quorum on a lifecycle schedule (a
+      bit flip at tick 30, replica 2 hangs at 60, replica 1 stuck at 120, a stuck bit in the last replica&#39;s result
+      at 1,280). The known-answer test caught the stuck bit on its tick and the quorum halted at 1,281: 698 correct, 0
+      wrong. Segment 2: fixed TMR on the same schedule, 119 correct, then a detected disagreement on every tick. Segment
+      3: the shrinking quorum with a checkpoint every 100 ticks, killed with SIGKILL at tick 900 and started again; it
+      resumed once from tick 900 with the retired replica still retired, 1,750 correct and 0 wrong. Results matched the
+      prediction written before the run.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Run 2</th>
+            <th>1 · Shrinking quorum</th>
+            <th>2 · Fixed TMR</th>
+            <th>3 · Restart</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FlatSat, 21 Oct 2026</td>
+            <td class="m">698 correct, 0 wrong, halted at 1,281</td>
+            <td class="m">119 correct, detected to tick 1,000</td>
+            <td class="m">4,000 correct, 0 wrong, 3 resumes</td>
+            <td class="m">133 s</td>
+          </tr>
+          <tr>
+            <td>In orbit, 22 Oct 2026</td>
+            <td class="m">698 correct, 0 wrong, halted at 1,281</td>
+            <td class="m">119 correct, detected to tick 750</td>
+            <td class="m">1,750 correct, 0 wrong, 1 resume</td>
+            <td class="m">136 s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From the summary files, checkpoints and run-info.txt in the
+      <a href="https://github.com/mruspace/flight/tree/main/opssat/results/2026-10-22-ops-sat-pretty-on-board-run2">
+        result files
+      </a>
+      . Segment 1&#39;s event log is the same in orbit as on the FlatSat. On the FlatSat, segment 3 resumed three times
+      from a checkpoint an earlier run had left in the home folder; since v0.4.1 the run script removes it. The voter
+      after the restart used 5.7% of wall time against its 5% setting; the cause is not known yet. Write-up:
+      <a href="https://mru.space/research/flight-orbit-2/">№ 007</a>.
+    </p>
     <p style="margin-top: 16px">
       On the flight processor at the 5% CPU share the voter made about 45 ticks per second on the FlatSat, and in orbit
-      about 46 for the shrinking quorum and 40 for fixed TMR (
+      about 46 for the shrinking quorum and 40 for fixed TMR in run 1, and about 25 to 30 in run 2 (
       <a href="https://github.com/mruspace/flight/blob/main/docs/opssat.md">operations note</a>).{' '}
-      <code>opssat/run</code> is the entry point the OPS-SAT runner executes: the shrinking quorum and fixed TMR one
-      after the other, same seed and fault schedule, all output in a folder for downlink, finished inside a five-minute
-      window. <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
+      <code>opssat/run</code> is the entry point the OPS-SAT runner executes: since v0.4.0 the three segments of run 2,
+      one after the other, same seed, all output in a folder for downlink, finished inside a five-minute window.{' '}
+      <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
       <code>opssat/run.sh</code> starts, checks and stops a long run on any Linux system. Tagged releases ship each
       static Linux binary (three ARM, one x86_64) with both launchers, the fault schedules and the operations note.
     </p>
