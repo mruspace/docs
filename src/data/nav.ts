@@ -83,7 +83,7 @@ export interface DocPage {
   path: string;
   /** Title in prev/next links. */
   short: string;
-  /** "Updated …" in the page ending. */
+  /** "Updated …" in the page ending, as ISO: "2026-10-19", or "2026-09" for a month. */
   updated?: string;
   /** "Source: …" in the page ending. */
   source?: string;
@@ -96,55 +96,76 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/shrinking-quorum/',
     short: 'Shrinking quorum',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     file: 'src/pages/concepts/shrinking-quorum.astro',
   },
   {
     path: '/concepts/architecture/',
     short: 'Architecture status',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     file: 'src/pages/concepts/architecture.astro',
   },
   {
     path: '/concepts/prior-art/',
     short: 'Prior art',
-    updated: '11 Oct 2026',
+    updated: '2026-10-11',
     file: 'src/pages/concepts/prior-art.astro',
   },
   {
     path: '/concepts/qualification/',
     short: 'Qualification path',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     file: 'src/pages/concepts/qualification.astro',
   },
   {
     path: '/core/quorum-crate/',
     short: 'The quorum crate',
-    updated: '11 Oct 2026',
+    updated: '2026-10-11',
     source: 'quorum/src/lib.rs',
     file: 'src/pages/core/quorum-crate.astro',
   },
   {
     path: '/core/quorum-cli/',
     short: 'The quorum CLI',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     source: 'demo/src/main.rs',
     file: 'src/pages/core/quorum-cli.astro',
   },
   {
     path: '/core/fprime/',
     short: 'F´ components',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     source: 'fprime/Mru/Components',
     file: 'src/pages/core/fprime.astro',
   },
   {
     path: '/core/bench/',
     short: 'Bench',
-    updated: '19 Oct 2026',
+    updated: '2026-10-19',
     source: 'scripts/bench.sh',
     file: 'src/pages/core/bench.astro',
   },
-  { path: '/simulation/dusk/', short: 'Dusk', updated: '11 Oct 2026', file: 'src/pages/simulation/dusk.astro' },
-  { path: '/lab/2049/', short: 'Mru 2049', updated: 'Sep 2026', file: 'src/pages/lab/2049.astro' },
+  { path: '/simulation/dusk/', short: 'Dusk', updated: '2026-10-11', file: 'src/pages/simulation/dusk.astro' },
+  { path: '/lab/2049/', short: 'Mru 2049', updated: '2026-09', file: 'src/pages/lab/2049.astro' },
 ];
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+/** "2026-10-19" as "October 19, 2026", "2026-09" as "September 2026". */
+export function formatUpdated(iso: string): string {
+  const [y, m, d] = iso.split('-');
+  const month = MONTHS[Number(m) - 1];
+  return d ? `${month} ${Number(d)}, ${y}` : `${month} ${y}`;
+}

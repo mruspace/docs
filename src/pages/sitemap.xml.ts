@@ -3,13 +3,10 @@ import type { APIRoute } from 'astro';
 import { METADATA } from '../data/metadata';
 import { PAGES } from '../data/nav';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 function parse(d?: string): string | null {
-  const m = d?.match(/^(?:(\d+) )?(\w{3}) (\d{4})$/);
+  const m = d?.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
   if (!m) return null;
-  const day = String(m[1] ?? '1').padStart(2, '0');
-  const mon = String(MONTHS.indexOf(m[2]!) + 1).padStart(2, '0');
-  return `${m[3]}-${mon}-${day}`;
+  return `${m[1]}-${m[2]}-${m[3] ?? '01'}`;
 }
 
 export const GET: APIRoute = () => {

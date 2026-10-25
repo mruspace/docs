@@ -244,11 +244,12 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
     <h2 id="opssat">On OPS-SAT</h2>
     <p>
       For experiment exp4051 on ESA&#39;s OPS-SAT PRETTY satellite, run by ESA&#39;s OPS-SAT Space Lab and TU Graz. The
-      same v0.3.1 package ran in orbit on 18 October 2026 at 09:45 UTC, after ESA&#39;s software environment test (15
-      October) and the TU Graz FlatSat test (16 October). Results matched the prediction written before the run: 227 s
-      in total, both runs exit 0, every fault on its scheduled tick, the shrinking quorum 2,745 correct and 0 wrong over
-      5,250 ticks, fixed TMR 239 correct then a detected disagreement on every tick to 4,500. Three software replicas on
-      one processor in user space, scheduled faults, no real upset in the window; not a hardware-redundancy test.
+      same v0.3.1 package ran in orbit on October 18, 2026, at 09:45 UTC, after ESA&#39;s software environment test
+      (October 15) and the TU Graz FlatSat test (October 16). Results matched the prediction written before the run: 227
+      s in total, both runs exit 0, every fault on its scheduled tick, the shrinking quorum 2,745 correct and 0 wrong
+      over 5,250 ticks, fixed TMR 239 correct then a detected disagreement on every tick to 4,500. Three software
+      replicas on one processor in user space, scheduled faults, no real upset in the window; not a hardware-redundancy
+      test.
     </p>
     <div class="tbl-box" tabindex="0">
       <table class="tbl">
@@ -264,7 +265,7 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
         </thead>
         <tbody>
           <tr>
-            <td>Software environment, 15 Oct 2026</td>
+            <td>Software environment, 2026-10-15</td>
             <td>ESA Linux VM, ARMv8, two cores</td>
             <td class="m">14,886 correct, 0 wrong, 29,532 ticks</td>
             <td class="m">239 correct, detected to tick 19,250</td>
@@ -272,7 +273,7 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
             <td class="m">0, 0</td>
           </tr>
           <tr>
-            <td>FlatSat, 16 Oct 2026</td>
+            <td>FlatSat, 2026-10-16</td>
             <td>SEPP, Cortex-A9, TU Graz</td>
             <td class="m">2,745 correct, 0 wrong, 5,250 ticks</td>
             <td class="m">239 correct, detected to tick 4,778</td>
@@ -280,7 +281,7 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
             <td class="m">0, 0</td>
           </tr>
           <tr>
-            <td>In orbit, 18 Oct 2026</td>
+            <td>In orbit, 2026-10-18</td>
             <td>SEPP, Cortex-A9, OPS-SAT PRETTY</td>
             <td class="m">2,745 correct, 0 wrong, 5,250 ticks</td>
             <td class="m">239 correct, detected to tick 4,500</td>
@@ -298,10 +299,10 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
       Both runs overran the 110 s cap by about 3 s because the limit is checked once per tick and the last tick was a 64
       MB scan; fixed in v0.4.0, where the scan checks the limit every 1 MiB and the sleep stops at the cap.
     </p>
-    <h3 id="opssat-run2">Run 2, 22 October 2026</h3>
+    <h3 id="opssat-run2">Run 2, October 22, 2026</h3>
     <p>
-      The v0.4.0 package ran in orbit on 22 October 2026 at 09:49 UTC, after ESA&#39;s software environment and the TU
-      Graz FlatSat on 21 October. Three segments in 136 s. Segment 1: the shrinking quorum on a lifecycle schedule (a
+      The v0.4.0 package ran in orbit on October 22, 2026, at 09:49 UTC, after ESA&#39;s software environment and the TU
+      Graz FlatSat on October 21. Three segments in 136 s. Segment 1: the shrinking quorum on a lifecycle schedule (a
       bit flip at tick 30, replica 2 hangs at 60, replica 1 stuck at 120, a stuck bit in the last replica&#39;s result
       at 1,280). The known-answer test caught the stuck bit on its tick and the quorum halted at 1,281: 698 correct, 0
       wrong. Segment 2: fixed TMR on the same schedule, 119 correct, then a detected disagreement on every tick. Segment
@@ -322,14 +323,14 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
         </thead>
         <tbody>
           <tr>
-            <td>FlatSat, 21 Oct 2026</td>
+            <td>FlatSat, 2026-10-21</td>
             <td class="m">698 correct, 0 wrong, halted at 1,281</td>
             <td class="m">119 correct, detected to tick 1,000</td>
             <td class="m">4,000 correct, 0 wrong, 3 resumes</td>
             <td class="m">133 s</td>
           </tr>
           <tr>
-            <td>In orbit, 22 Oct 2026</td>
+            <td>In orbit, 2026-10-22</td>
             <td class="m">698 correct, 0 wrong, halted at 1,281</td>
             <td class="m">119 correct, detected to tick 750</td>
             <td class="m">1,750 correct, 0 wrong, 1 resume</td>
