@@ -6,7 +6,7 @@ export default {
   drop: ['script', 'style', 'button', 'form', '.prevnext'],
   title: 'Mru docs',
   summary:
-    "Reference for Mru's open core, for unattended missions with no repair path: the shrinking-quorum decision crate and its fault-injection demo (Rust, no_std, nine Kani proofs: four on the core, five on the C interface), the Dusk simulator and the Mru 2049 browser flight simulator. The quorum demo ran twice in orbit on ESA's OPS-SAT PRETTY satellite (exp4051, October 18 and 22, 2026); the F´ components have not run on flight hardware. Code under Apache 2.0.",
+    "Reference for Mru's open core, for unattended missions with no repair path: the shrinking-quorum decision crate and its fault-injection demo (Rust, no_std, nine Kani proofs: four on the core, five on the C interface), the Dusk simulator and the Mru 2049 browser flight simulator. Mru Flight ran three times in orbit on ESA's OPS-SAT PRETTY satellite (exp4051): the quorum demo on October 18 and 22, 2026, and the F´ components in an F´ deployment on October 28, 2026. Code under Apache 2.0.",
   intro:
     'Product pages, use cases and research results are at https://mru.space/llms.txt. Questions: contact@mru.space.',
   sections: [

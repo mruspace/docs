@@ -226,15 +226,16 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       It is built as a static, optimized 32-bit ARM binary for the SEPP, the Cortex-A9 payload processor of OPS-SAT
       PRETTY. In ESA&#39;s OPS-SAT experiment environment, on a laptop under emulation, the package ran full length on
       October 22, 2026: 148 seconds, 0 wrong results, the counts of the demo within the system test&#39;s rule, a
-      restore from the state file after a kill, and 1.2% to 1.5% CPU in the timed run. It has not run on the SEPP. See{' '}
-      <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
+      restore from the state file after a kill, and 1.2% to 1.5% CPU in the timed run. The second deployment flew in its
+      place. See <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
     </p>
     <p>
       A second deployment puts each replica in a process of its own: <code>MruQuorum</code>, the manager process, starts
       three <code>MruReplica</code> processes, linked through F&#180;&#39;s GenericHub over Unix socket pairs (no
       network), and pins them to the SEPP&#39;s two cores. The kill is real: the manager sends SIGKILL to a replica
       process at the start of a cycle. In ESA&#39;s environment under emulation it gave the same counts and events as
-      the first deployment, with the three processes pinned in every segment. It has not run on the SEPP.
+      the first deployment, with the three processes pinned in every segment. It ran on the SEPP, on the FlatSat and in
+      orbit, on October 28, 2026 (<a href="#opssat-run3">below</a>).
     </p>
     <p>
       On one processor the manager and the replicas share the processor. A manager that falls behind used to close
@@ -243,6 +244,60 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       missing at once, counts against no replica; with an answer missing it is withheld and counted (MRU-RM-023). In a
       container starved of processor time, the old rule halted 9 of 15 runs and the new one none; no run gave a wrong
       result.
+    </p>
+
+    <h2 id="opssat-run3">On OPS-SAT</h2>
+    <p>
+      The second deployment ran in orbit on ESA&#39;s OPS-SAT PRETTY satellite on October 28, 2026, at 09:13 UTC, as run
+      3 of experiment exp4051, after ESA&#39;s software environment and the TU Graz FlatSat the same morning. It was the
+      first run of these components on flight hardware: the SEPP, with each replica process pinned to a core (0, 1, 1).
+      Three segments in 148 s, the faults of run 1 from an F&#180; command sequence. Segment 1: the shrinking quorum; a
+      bit flip at cycle 60 outvoted, replica 1 stuck at 120 and retired at 122, replica 0&#39;s process killed with
+      SIGKILL at the start of cycle 240 and retired as lost at 242, then self-check on the last replica from 243.
+      Segment 2: fixed TMR on the same faults. Segment 3: the shrinking quorum with replica 1 retired at 202; the
+      manager killed 35 s in and started again, restored from its state file at cycle 303 with replica 1 still retired.
+      Results matched the prediction written before the run.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Run 3</th>
+            <th>1 · Shrinking quorum</th>
+            <th>2 · Fixed TMR</th>
+            <th>3 · Restart</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FlatSat, 2026-10-28</td>
+            <td class="m">342 correct, 3 caught, 0 wrong, 1 withheld</td>
+            <td class="m">239 correct, caught to cycle 348, 1 withheld</td>
+            <td class="m">299 correct, 0 wrong, restored at 303</td>
+            <td class="m">148 s</td>
+          </tr>
+          <tr>
+            <td>In orbit, 2026-10-28</td>
+            <td class="m">342 correct, 3 caught, 0 wrong</td>
+            <td class="m">239 correct, caught to cycle 348</td>
+            <td class="m">299 correct, 0 wrong, restored at 303</td>
+            <td class="m">148 s</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From the summary, event and state files and run-info.txt in the
+      <a href="https://github.com/mruspace/flight/tree/main/opssat/results/2026-10-28-ops-sat-pretty-on-board-run3">
+        result files
+      </a>
+      . On the FlatSat the kill landed while the manager was behind, so it withheld cycle 240 (MRU-RM-023) and retired
+      replica 0 one cycle later; the counts did not change. In orbit no cycle was withheld. On the SEPP the manager used
+      1.7 MB resident and 11.8 MB of address space, and 0.40% to 0.46% of wall time; all four processes together 0.79%
+      to 0.96%. Scope: one payload processor with two cores, in user space, faults from a command sequence; not a
+      hardware-redundancy test. Write-up:
+      <a href="https://mru.space/research/flight-orbit-3/">№ 008</a>.
     </p>
 
     <h2 id="cycle">One cycle</h2>
@@ -353,9 +408,10 @@ fprime-util generate --ut &amp;&amp; fprime-util check --all
     <h2 id="limits">Limits</h2>
     <ul class="sig-list">
       <li>
-        <strong>Not on flight hardware.</strong> The components run in tests and in the deployment on general-purpose
-        processors, the ARM build under emulation. The OPS-SAT run used the quorum demo, not these components, so they
-        stay at Prototype in the <a href="/concepts/architecture/">architecture status</a>.
+        <strong>One run on flight hardware.</strong> The second deployment ran once in orbit, 148 seconds on one payload
+        processor with two cores, in user space, with faults from a command sequence. Not a hardware-redundancy test and
+        not a radiation test. Everything else runs in tests on general-purpose processors, the ARM build under
+        emulation. See the <a href="/concepts/architecture/">architecture status</a>.
       </li>
       <li>
         <strong>No ground link yet.</strong> The first deployment has no communications stack. A deployment with

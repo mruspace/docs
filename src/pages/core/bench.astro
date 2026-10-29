@@ -576,8 +576,8 @@ const n1 = (v: unknown) => (typeof v === 'number' ? (Number.isInteger(v) ? Strin
       </li>
       <li>
         <strong>Not target hardware.</strong> The bench hosts are general-purpose processors. The quorum demo has run on
-        a flight processor, on the OPS-SAT FlatSat and twice in orbit, but this bench has not. See the{' '}
-        <a href="/concepts/architecture/">architecture status</a>.
+        a flight processor, on the OPS-SAT FlatSat and twice in orbit, and the F&#180; deployment once, but this bench
+        has not. See the <a href="/concepts/architecture/">architecture status</a>.
       </li>
       <li>
         <strong>Processes, not separate processors.</strong> The three replicas share one processor and one memory. A
@@ -624,7 +624,7 @@ cargo run --release -p bench <span class="c"># the cost of the core only</span><
         The scripts and procedure are in{' '}
         <a href="https://github.com/mruspace/flight/blob/main/docs/board.md">docs/board.md</a>. No{' '}
         <code>scripts/board.sh</code> run has been done yet; the OPS-SAT packages ran on the FlatSat and in orbit
-        without reboots or power cuts; run 2 killed and restarted the voter process.
+        without reboots or power cuts; runs 2 and 3 killed and restarted the voter or manager process.
       </li>
       <li>
         <strong>Calibrate Dusk&#39;s environment</strong> with real upset and failure data, from a radiation beam test
