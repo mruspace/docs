@@ -109,10 +109,10 @@ const crumbs = [
               campaign, an F&#180; system test against the demo, two F&#180; deployments (<code>MruOpsSat</code>, and
               <code>MruQuorum</code> with each replica in a process of its own) run full length in ESA&#39;s OPS-SAT
               experiment environment under emulation, <a href="/core/bench/">bench</a> on general-purpose processors,
-              Dusk, and the quorum demo on the SEPP flight processor: OPS-SAT PRETTY FlatSat (October 16 and 21, 2026)
-              and in orbit (October 18 and 22, 2026, exp4051),{' '}
-              <a href="https://github.com/mruspace/flight/tree/main/opssat/results">logs published</a>. The F&#180;
-              components stay Prototype.
+              Dusk, and on the SEPP flight processor (exp4051) the quorum demo, on the OPS-SAT PRETTY FlatSat (October
+              16 and 21, 2026) and in orbit (October 18 and 22, 2026), and the F&#180; deployment <code>MruQuorum</code>
+              , on the FlatSat and in orbit (October 28, 2026),{' '}
+              <a href="https://github.com/mruspace/flight/tree/main/opssat/results">logs published</a>.
             </td>
           </tr>
           <tr>
@@ -171,10 +171,10 @@ const crumbs = [
               <code>RedundancyManager</code> runs it through a C interface that Kani proves equal to the core. The
               quorum demo ran it on the OPS-SAT SEPP, a Cortex-A9 flight processor, on the FlatSat and in orbit, twice:
               three software replicas on one processor, faults from a schedule. The second run went from three replicas
-              to one and halted safely with no wrong result when the last one failed its known-answer test.{' '}
-              <code>RedundancyManager</code> has not run there. The F&#180; deployments run it with F&#180;&#39;s own
-              services and are built for the SEPP; the second puts each replica in a process of its own on the
-              SEPP&#39;s two cores, with a real process kill.
+              to one and halted safely with no wrong result when the last one failed its known-answer test. On October
+              28, 2026, <code>RedundancyManager</code> ran it there too, in the second F&#180; deployment: each replica
+              a process of its own on the SEPP&#39;s two cores, a real process kill, and 342 correct results and 0 wrong
+              in the shrinking-quorum segment. See <a href="/core/fprime/#opssat-run3">F&#180; on OPS-SAT</a>.
             </td>
           </tr>
           <tr>
@@ -184,9 +184,9 @@ const crumbs = [
               <code>quorum::Health</code> counts strikes per replica. Three strikes within 200 ticks start a
               known-answer test, which retires or clears the replica. The F&#180; component <code>HealthRegistry</code>{' '}
               holds the record. The whitepaper&#39;s score of error rate, response time and gate use is not built.{' '}
-              <code>quorum::Health</code> ran in both OPS-SAT runs in orbit, retired each stuck replica, and kept the
-              retired replica retired across a kill and a resume from a checkpoint; the F&#180;{' '}
-              <code>HealthRegistry</code> did not run.
+              <code>quorum::Health</code> ran in all three OPS-SAT runs in orbit and retired each stuck replica. The
+              retired replica stayed retired across a kill and a resume from a checkpoint in run 2, and across a kill
+              and a restore from the F&#180; manager&#39;s state file in run 3, with <code>HealthRegistry</code>.
             </td>
           </tr>
           <tr>
@@ -278,11 +278,12 @@ const crumbs = [
         <strong>Mru Flight</strong> is Layer 1 for spacecraft. The F&#180; components <code>RedundancyManager</code>,{' '}
         <code>HealthRegistry</code> and <code>ReplicaHost</code> are built and tested: 45 unit tests with the two
         test-only components, a system test against the demo&#39;s counts on the bench schedules, and two F&#180;
-        deployments, the second with each replica in a process of its own. They have not run on flight hardware. The
-        quorum demo, without F&#180;,{' '}
+        deployments, the second with each replica in a process of its own. The quorum demo, without F&#180;,{' '}
         <a href="/core/quorum-cli/#opssat">ran in orbit on ESA&#39;s OPS-SAT PRETTY satellite</a> on October 18 and 22,
-        2026 (exp4051), as three software replicas on one Linux payload processor with faults from a schedule. Both runs
-        matched the prediction written before them.
+        2026 (exp4051), and the second F&#180; deployment{' '}
+        <a href="/core/fprime/#opssat-run3">ran there on October 28, 2026</a>: three software replicas on one Linux
+        payload processor, with faults from a schedule or an F&#180; command sequence. All three runs matched the
+        prediction written before them.
       </li>
       <li>
         <strong>Mru Field</strong> is the same Layer 1 core for systems on Earth that are hard to reach. See{' '}
@@ -301,9 +302,9 @@ const crumbs = [
     <p>In order:</p>
     <ul class="sig-list">
       <li>
-        <strong>Run the full bench on target-class processors.</strong> The quorum demo has run twice on a flight
-        processor, on the FlatSat and in orbit; the 300-run <a href="/core/bench/">bench</a> with reboots and power cuts
-        has not.
+        <strong>Run the full bench on target-class processors.</strong> The quorum demo has run twice and the F&#180;
+        deployment once on a flight processor, on the FlatSat and in orbit; the 300-run <a href="/core/bench/">bench</a>{' '}
+        with reboots and power cuts has not.
       </li>
       <li>
         <strong>Calibrate Dusk</strong> with radiation or flight data. Its policy model is already{' '}

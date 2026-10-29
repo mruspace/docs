@@ -194,8 +194,8 @@ const crumbs = [
     <p>
       <code>--sensor-mb M</code> holds M MB of memory in a known pattern and checks it every <code>--sensor-every</code>{' '}
       ticks (default 1000). Every flipped bit is logged with its location, then repaired. On flight hardware, this
-      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>. In both runs in
-      orbit it found only the injected self-test flip, and no real upset.
+      measures the real upset rate. It must leave at least 32 MB under <code>--max-memory-mb</code>. In both runs of the
+      demo in orbit it found only the injected self-test flip, and no real upset.
     </p>
 
     <h2 id="output">Output</h2>
@@ -358,6 +358,14 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
       <code>opssat/package.sh</code> builds the package from a checksum-verified release binary.{' '}
       <code>opssat/run.sh</code> starts, checks and stops a long run on any Linux system. Tagged releases ship each
       static Linux binary (three ARM, one x86_64) with both launchers, the fault schedules and the operations note.
+    </p>
+    <h3 id="opssat-run3">Run 3, October 28, 2026</h3>
+    <p>
+      Run 3 flew the F&#180; components instead of this demo: the same decision core in an F&#180; deployment, each
+      replica a process of its own on the SEPP&#39;s two cores, with the faults of run 1 and a real process kill. 342
+      correct and 0 wrong down to the last replica, fixed TMR 239 then a caught disagreement on every cycle, and a
+      restore from the manager&#39;s state file with the retired replica still retired. See{' '}
+      <a href="/core/fprime/#opssat-run3">F&#180; on OPS-SAT</a>.
     </p>
     <DocsEnd />
   </article>

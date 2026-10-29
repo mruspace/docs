@@ -197,9 +197,11 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs
         <a href="/core/bench/#results">Bench</a>.
       </li>
       <li>
-        <strong>OPS-SAT.</strong> Two runs in orbit on the SEPP. Run 1, 5,250 ticks: 2,745 correct, 0 wrong, every fault
-        on its tick. Run 2: from three replicas to one, then a safe halt at tick 1,281 with 698 correct and 0 wrong. One
-        seed, scheduled faults. See <a href="/core/quorum-cli/#opssat">On OPS-SAT</a>.
+        <strong>OPS-SAT.</strong> Three runs in orbit on the SEPP. Run 1, 5,250 ticks: 2,745 correct, 0 wrong, every
+        fault on its tick. Run 2: from three replicas to one, then a safe halt at tick 1,281 with 698 correct and 0
+        wrong. Run 3, in F&#180; with each replica a process of its own: down to the last replica after a real process
+        kill, 342 correct and 0 wrong over 449 cycles. One seed, scheduled faults. See{' '}
+        <a href="/core/quorum-cli/#opssat">On OPS-SAT</a>.
       </li>
       <li>
         <strong>Dusk.</strong> {t('dusk.runs')} simulated missions. The two policies are identical until fixed TMR

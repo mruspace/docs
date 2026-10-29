@@ -58,7 +58,7 @@
   {
     "url": "https://docs.mru.space/core/fprime/",
     "title": "F´ components for the shrinking quorum · Mru Docs",
-    "description": "RedundancyManager, HealthRegistry, ReplicaHost and FaultInjector for F´ v4.4.1, the C interface to the core, and how they were verified.",
+    "description": "RedundancyManager, HealthRegistry, ReplicaHost and FaultInjector for F´ v4.4.1: the C interface to the core, verification, and the run in orbit.",
     "ogTitle": "F´ components",
     "cardLabel": "Docs · Core runtime",
     "schema": ["TechArticle", "SoftwareSourceCode", "BreadcrumbList"]
