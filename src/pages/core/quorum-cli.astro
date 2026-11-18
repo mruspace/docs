@@ -369,13 +369,13 @@ limits: memory=128MB/process cpu_time=none cpu_share=none max_run=none reply_tim
     </p>
     <h3 id="opssat-run4">Run 4, approved, not flown</h3>
     <p>
-      The OPS-SAT team approved run 4 on November 16, 2026, and the v0.9.0 package,{' '}
-      <code>exp4051-mru-flight-v0.9.0.tar.gz</code>, was sent the same day. It has not flown. Six segments of 40
-      seconds: automatic resets of a replica that stops answering and of a dead one, the same faults with resets off and
-      under fixed TMR, three simulated sensors, the decision core as a <a href="/core/fprime/#cfs">cFS application</a>,
-      and real bit flips in each replica process&#39;s memory, made by software. Segments 1 to 5 inject each fault at
-      its symptom; the run shows the recovery logic, not a recovered device. In ESA&#39;s environment image the whole
-      package ran three times at full length: 246 seconds, every exit 0, 0 wrong results in every segment. See the{' '}
+      The OPS-SAT team approved run 4 on November 16, 2026. The package is the v0.9.0 release asset{' '}
+      <code>exp4051-mru-flight-v0.9.0.tar.gz</code>. It has not flown. Six segments of 40 seconds: automatic resets of a
+      replica that stops answering and of a dead one, the same faults with resets off and under fixed TMR, three
+      simulated sensors, the decision core as a <a href="/core/fprime/#cfs">cFS application</a>, and real bit flips in
+      each replica process&#39;s memory, made by software. Segments 1 to 5 inject each fault at its symptom; the run
+      shows the recovery logic, not a recovered device. In ESA&#39;s environment image the whole package ran three times
+      at full length: 246 seconds, every exit 0, 0 wrong results in every segment. See the{' '}
       <a href="https://github.com/mruspace/flight/blob/main/docs/fault-model.md">fault model</a> and{' '}
       <a href="https://mru.space/research/flight-run4-package/">№ 010</a>.
     </p>
