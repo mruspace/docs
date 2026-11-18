@@ -27,6 +27,7 @@ export type NavId =
   | 'fprime'
   | 'cfs'
   | 'opssat'
+  | 'run4'
   | 'field'
   | 'field-config'
   | 'field-staged'
@@ -69,6 +70,15 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    title: 'Mru Flight',
+    items: [
+      { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
+      { id: 'cfs', label: 'cFS application', href: '/core/fprime/#cfs' },
+      { id: 'opssat', label: 'OPS-SAT runs', href: '/core/quorum-cli/#opssat' },
+      { id: 'run4', label: 'Run 4', href: '/core/fprime/#opssat-run4' },
+    ],
+  },
+  {
     title: 'Mru Field',
     items: [
       { id: 'field', label: 'Supervisor', href: '/field/' },
@@ -83,14 +93,6 @@ export const NAV: NavGroup[] = [
       { id: 'dusk', label: 'Dusk', href: '/simulation/dusk/' },
       { id: 'model', label: 'The fault model', href: '/simulation/dusk/#model' },
       { id: 'sweep', label: 'Sweeps and ground support', href: '/simulation/dusk/#sweep' },
-    ],
-  },
-  {
-    title: 'Integrations',
-    items: [
-      { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
-      { id: 'cfs', label: 'cFS application', href: '/core/fprime/#cfs' },
-      { id: 'opssat', label: 'OPS-SAT run', href: '/core/quorum-cli/#opssat' },
     ],
   },
   { title: 'Lab', items: [{ id: '2049', label: 'Mru 2049', href: '/lab/2049/' }] },
