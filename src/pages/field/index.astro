@@ -1,0 +1,1388 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsEnd from '../../components/DocsEnd.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+
+const crumbs = [{ label: 'Docs', href: '/' }, { label: 'Mru Field' }];
+const repo = 'https://github.com/mruspace/field/blob/v0.3.0';
+const tree = 'https://github.com/mruspace/field/tree/v0.3.0';
+---
+
+<DocsLayout
+  crumbs={crumbs}
+  code={{
+    name: 'Mru Field',
+    repo: 'https://github.com/mruspace/field',
+    language: 'Rust',
+    license: 'Apache-2.0',
+  }}
+  active="field"
+  toc={[
+    { href: '#what', label: 'What it is' },
+    { href: '#quickstart', label: 'Quick start' },
+    { href: '#interface', label: 'Task interface' },
+    { href: '#cli', label: 'CLI' },
+    { href: '#config', label: 'Configuration' },
+    { href: '#outputs', label: 'Outputs' },
+    { href: '#staged', label: 'Staged updates' },
+    { href: '#floods', label: 'Flood limits' },
+    { href: '#tests', label: 'Tests' },
+    { href: '#limits', label: 'Limits' },
+  ]}
+>
+  <article class="body">
+    <Breadcrumbs items={crumbs} />
+    <h1>Mru Field</h1>
+    <p class="lede">
+      The supervisor for hard-to-reach systems on Earth. One process on one Linux board runs an operator&#39;s task as
+      three replicas and hands every replica the same input. It decides with the{' '}
+      <a href="/core/quorum-crate/">
+        <code>quorum</code> crate
+      </a>{' '}
+      and delivers one checked output per cycle.
+    </p>
+    <div class="row" style="gap: 8px; margin: 8px 0 24px">
+      <span class="pill">v0.3.0</span>
+      <span class="pill">Rust</span>
+      <span class="pill">quorum 0.4.0</span>
+      <span class="pill sig">
+        <span class="dot"></span>39 unit, 29 integration tests
+      </span>
+      <span class="pill">26 scenario checks</span>
+    </div>
+
+    <h2 id="what">What it is</h2>
+    <p>
+      Field is for systems that run for months between visits: ocean observatories, buoys and moorings, offshore and
+      remote sites, polar and seismic stations. On each cycle the supervisor reads one input record from a source the
+      operator configures, hands the same bytes to every replica with a shared state record, decides with the{' '}
+      <code>quorum</code> crate from mruspace/flight v0.4.0 (unchanged), and delivers one output to a configured sink.
+      It retires a replica that is wrong, hung or dead, and goes on with the ones left. It resumes from a checkpoint
+      after a reset or a power cut.
+    </p>
+    <p>
+      <strong>Status, November 16, 2026: version 0.3.0, built and tested on the bench.</strong> It runs on
+      general-purpose processors (Linux x86_64 and ARM64, macOS, and static ARM builds under emulation in CI). It has
+      not run on a board in a system yet, and it has no qualification evidence. The decision rule is the same code that
+      ran on ESA&#39;s OPS-SAT PRETTY satellite on October 18, 22 and 28, 2026. The first deployment, an EMSO ERIC ocean
+      test, is proposed for 2027. The source is <a href={tree}>mruspace/field</a>; the specification is{' '}
+      <a href={`${repo}/docs/spec.md`}>docs/spec.md</a>.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Replicas alive</th>
+            <th>Mode</th>
+            <th>Delivered when</th>
+            <th>Detected, nothing delivered, when</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">3</td>
+            <td>Vote</td>
+            <td>at least two outputs agree</td>
+            <td>no two agree</td>
+          </tr>
+          <tr>
+            <td class="m">2</td>
+            <td>Compare</td>
+            <td>both agree</td>
+            <td>they disagree; the known-answer test names the bad one and it is retired</td>
+          </tr>
+          <tr>
+            <td class="m">1</td>
+            <td>Self-check</td>
+            <td>the replica&#39;s two computations agree</td>
+            <td>they disagree</td>
+          </tr>
+          <tr>
+            <td class="m">0</td>
+            <td>Halted</td>
+            <td>never</td>
+            <td>the run has halted and the log says so</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Spec section 4. The crate decides on a 64-bit FNV-1a hash of each reply (output and next state). The supervisor
+      then compares the agreeing replies byte for byte before it delivers.
+    </p>
+    <p style="margin-top: 16px">
+      A replica that loses a vote gets a strike. Three strikes in 200 cycles start the known-answer test: a pass clears
+      the strikes, a fail retires the replica. A replica that does not answer in time, exits, or sends a record over the
+      size limit is lost at once. With <code>restart_retired</code> (off by default), a fresh process takes a retired
+      slot after a cool-down.
+    </p>
+    <p>
+      Field is not a service manager. systemd restarts a process that dies. Field catches a process that is alive and
+      wrong, alive and hung, or restarted from zero after a reset. It runs under systemd and does not replace it.
+    </p>
+
+    <h2 id="quickstart">Quick start</h2>
+    <p>
+      Needs Rust stable. The build fetches the <code>quorum</code> crate from mruspace/flight by tag.
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    ><span class="k">git</span> clone https://github.com/mruspace/field &amp;&amp; <span class="k">cd</span> field
+cargo build --release
+target/release/field version
+target/release/field check-task tasks/demo/field.conf   <span class="c"># is the task deterministic?</span>
+target/release/field run tasks/demo/field.conf          <span class="c"># one cycle per second, until SIGTERM</span></pre>
+    <p style="margin-top: 16px">
+      <code>version</code> prints <code>field 0.3.0 (quorum 0.4.0)</code>. <code>check-task</code> prints{' '}
+      <code>requests=10000 mismatches=0 lost=0</code> and exits 0. <code>run</code> writes to <code>out/</code> and
+      prints the summary when it stops. Stopped with SIGTERM after six cycles:
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    >field=0.3.0 quorum=0.4.0 policy=shrink task=target/release/field-demo-task adapter=none input=tick output=file:out/delivered
+<span class="s">cycles=6 delivered=6 detected=0</span> wrong=- alive=3 mode=vote last_delivered=6 kat_tests=6
+stopped=signal at_cycle=6 halted_at=never started=2026-11-18T16:23:04Z written=2026-11-18T16:23:09Z
+checkpoint: every=100 resumes=0 last=6 halted=no
+footprint: supervisor_max_rss=2048KiB replica_max_rss=1728KiB cpu=0.010s wall=5.6s
+limits: memory=128MB/process cpu_share=5% max_run=none reply_timeout=2000ms period=1000ms task_network=deny(not-enforced-here)</pre>
+    <p class="tiny" style="margin-top: 10px">
+      field 0.3.0 (commit 05c1655) on macOS 27.0.1, Apple M4 (arm64), rustc 1.86.0, November 18, 2026. The footprint
+      line varies by host. The network lock is enforced on Linux only, so macOS shows deny(not-enforced-here).
+    </p>
+    <p style="margin-top: 16px">
+      The demo task is the flown demo&#39;s payload (a 4 KiB block filled from the input and hashed with FNV-1a) under
+      the task interface. The keys <code>tasks/demo/field.conf</code> sets:
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    >task        = "target/release/field-demo-task"   <span class="c"># the replica executable</span>
+input       = "tick"            <span class="c"># the cycle number is the input record</span>
+period_ms   = 1000              <span class="c"># one cycle per second</span>
+output      = "file:out/delivered"   <span class="c"># cycle, length, bytes, per delivered output</span>
+dir         = "out"             <span class="c"># events.csv, summary.txt, checkpoint</span>
+kat_input   = "tasks/demo/kat.in"
+kat_output  = "tasks/demo/kat.out"
+checkpoint_every = 100
+summary_every    = 1000
+cpu_percent = 5                 <span class="c"># the supervisor&#39;s share of one core</span></pre>
+
+    <h3 id="quickstart-faults">With a fault schedule</h3>
+    <p>
+      The same task as fast as it answers, 400 cycles, with the bench&#39;s fault schedule and the test-only oracle that
+      scores every delivered output. Save this as <code>faults.conf</code> in the repository root:
+    </p>
+    <pre class="pre" tabindex="0">task       = "target/release/field-demo-task"
+input      = "tick"
+period_ms  = 0
+output     = "none"
+dir        = "out-faults"
+kat_input  = "tasks/demo/kat.in"
+kat_output = "tasks/demo/kat.out"
+max_cycles = 400
+reply_timeout_ms = 200
+faults     = "docs/results/2026-10-21-darwin-arm64/faults.txt"   <span class="c"># corrupt:2@30, hang:2@60, stuck:1@120</span>
+oracle     = "target/release/field-demo-task"</pre>
+    <p style="margin-top: 16px">
+      <code>target/release/field run faults.conf</code> prints:
+    </p>
+    <pre
+      class="pre"
+      tabindex="0"
+    >field=0.3.0 quorum=0.4.0 policy=shrink task=target/release/field-demo-task adapter=none input=tick output=none
+cycles=400 <span class="s">delivered=399 detected=1 wrong=0</span> alive=1 mode=selfcheck last_delivered=400 kat_tests=13
+stopped=completed at_cycle=400 halted_at=never started=2026-11-18T16:23:24Z written=2026-11-18T16:23:24Z
+checkpoint: every=100 resumes=0 last=400 halted=no
+footprint: supervisor_max_rss=2128KiB replica_max_rss=1776KiB cpu=0.030s wall=0.3s
+limits: memory=128MB/process cpu_share=none max_run=none reply_timeout=200ms period=0ms task_network=deny(not-enforced-here)
+faults: injected=3 caught=3 latency_mean=0.0 latency_max=0 (cycles)
+fault: corrupt:2@30 caught=30 latency=0 how=outvoted
+fault: hang:2@60 caught=60 latency=0 how=lost
+fault: stuck:1@120 caught=120 latency=0 how=diagnose</pre>
+    <p style="margin-top: 16px">
+      And <code>out-faults/events.csv</code>:
+    </p>
+    <pre class="pre" tabindex="0">cycle,event,detail
+30,injected,corrupt:2
+30,outvoted,2
+60,injected,hang:2
+60,lost,2
+120,injected,stuck:1
+120,retired,1 diagnose
+120,detected,compare
+400,stopped,completed</pre>
+    <p class="tiny" style="margin-top: 10px">
+      Same build and host, November 18, 2026.
+    </p>
+    <p style="margin-top: 16px">
+      Replica 2&#39;s flipped bit is outvoted on cycle 30 and the replica stays. Replica 2 stops answering on cycle 60
+      and is lost. Replica 1 goes wrong on cycle 120 with two alive: the two disagree, nothing is delivered that cycle,
+      the known-answer test names replica 1, and replica 0 self-checks alone from there. 399 of 400 outputs delivered,
+      none wrong.
+    </p>
+
+    <h2 id="interface">Task interface</h2>
+    <p>
+      A replica is a process in any language. The supervisor starts it, talks to it over its standard input and standard
+      output, and stops it by closing its input. All integers are little-endian. Spec section 3.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Request field</th>
+            <th>Size</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">cycle</td>
+            <td class="m">8 bytes</td>
+            <td>The cycle number, from 1 after a fresh start</td>
+          </tr>
+          <tr>
+            <td class="m">flags</td>
+            <td class="m">1 byte</td>
+            <td>Bit 0: self-check. Bit 1: known-answer test.</td>
+          </tr>
+          <tr>
+            <td class="m">input length, input</td>
+            <td class="m">4 + n bytes</td>
+            <td>The acquired record, the same for every replica</td>
+          </tr>
+          <tr>
+            <td class="m">state length, state</td>
+            <td class="m">4 + m bytes</td>
+            <td>The state record from the last delivered cycle; empty on the first cycle of a fresh run</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-box" tabindex="0" style="margin-top: 16px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Response field</th>
+            <th>Size</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">output length, output</td>
+            <td class="m">4 + n bytes</td>
+            <td>The output record</td>
+          </tr>
+          <tr>
+            <td class="m">state length, state</td>
+            <td class="m">4 + m bytes</td>
+            <td>The next state record</td>
+          </tr>
+          <tr>
+            <td class="m">second output</td>
+            <td class="m">4 + n bytes</td>
+            <td>Only when the self-check bit was set: the output of the second computation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">A length over record_max or state_max makes the replica lost. Framing in src/protocol.rs.</p>
+    <ul class="sig-list" style="margin-top: 16px">
+      <li>
+        <strong>Deterministic.</strong> The same request gives the same bytes. No clock, no random numbers, no reads of
+        its own, no state between requests other than the state record it is handed. <code>field check-task</code> tests
+        this before the task is supervised.
+      </li>
+      <li>
+        <strong>On time.</strong> It answers within <code>reply_timeout_ms</code> or it is lost. The first answer after
+        a process starts gets 2 s more, once, for the process start. It exits when its standard input closes.
+      </li>
+      <li>
+        <strong>Self-check flag.</strong> Compute twice and return both outputs. The supervisor sets it when one replica
+        is left.
+      </li>
+      <li>
+        <strong>Known-answer flag.</strong> The request carries the record from <code>kat_input</code>, an empty state
+        and the current cycle. The output must equal <code>kat_output</code> and must not depend on the state or the
+        cycle. Sent twice at start-up, after three strikes in a window, on a disagreement between two, and every{' '}
+        <code>kat_every</code> cycles on the last replica. A wrong or late answer retires the replica.
+      </li>
+      <li>
+        <strong>
+          <code>cli</code> adapter.
+        </strong>{' '}
+        <code>adapter = "cli"</code> runs a program once per request with the input on its standard input, and reads the
+        output to end of file. The state record is handed back unchanged. Slower, and the program cannot keep state, but
+        it needs no code change. A fault schedule needs a long-lived process and is refused with this adapter.
+      </li>
+    </ul>
+
+    <h2 id="cli">CLI</h2>
+    <pre class="pre" tabindex="0">usage: field run CONFIG
+       field check-task CONFIG [--requests N] [--seed S] [--inputs FILE]
+       field version</pre>
+    <p style="margin-top: 16px">Any other form prints this text and exits 2.</p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>What it does</th>
+            <th>Exit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">field run CONF</td>
+            <td>
+              Runs the supervisor until it stops, then prints the summary. It stops on SIGTERM or SIGINT (finish the
+              cycle, checkpoint, summary), at <code>max_cycles</code> or <code>max_seconds</code>, at the end of a{' '}
+              <code>file:</code> source, or on a halt with <code>on_halt = "exit"</code>.
+            </td>
+            <td class="m">0 stop, 1 sink or input error, 2 refused configuration or checkpoint</td>
+          </tr>
+          <tr>
+            <td class="m">field check-task CONF</td>
+            <td>
+              The determinism test. Starts two instances of <code>task</code>. Each request goes to the first instance
+              twice and to the second once. All three answers must be byte-identical. Stops early after three lost
+              replies.
+            </td>
+            <td class="m">0 pass, 1 mismatch or lost reply, 2 task does not start or bad input file</td>
+          </tr>
+          <tr>
+            <td class="m">field version</td>
+            <td>
+              Prints <code>field 0.3.0 (quorum 0.4.0)</code>.
+            </td>
+            <td class="m">0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-box" tabindex="0" style="margin-top: 16px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>check-task option</th>
+            <th>Default</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">--requests N</td>
+            <td class="m">10000</td>
+            <td>Requests to send</td>
+          </tr>
+          <tr>
+            <td class="m">--seed S</td>
+            <td class="m">1</td>
+            <td>Seed for the generated inputs</td>
+          </tr>
+          <tr>
+            <td class="m">--inputs FILE</td>
+            <td class="m">none</td>
+            <td>
+              Length-prefixed records (4-byte length, then the bytes), one request each, in place of generated inputs
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Generated inputs: every 10th request is the request number as an 8-byte record, the others 1 to 256 random bytes.
+      Every 100th request sets the self-check flag. The state record carries forward from the answers. From
+      src/check.rs.
+    </p>
+    <p style="margin-top: 16px">
+      A task that reads anything but its request fails here. Here the task is a build of the demo task that appends its
+      process ID to every output, and <code>nondet.conf</code> is <code>tasks/demo/field.conf</code> with{' '}
+      <code>task = "builds/nondet.sh"</code>:
+    </p>
+    <pre class="pre" tabindex="0"><span class="c"># builds/nondet.sh, executable</span>
+#!/bin/sh
+exec target/release/field-demo-task --nondeterministic
+
+<span class="c">$ target/release/field check-task nondet.conf; echo "exit=$?"</span>
+request 1: answers differ (229 bytes in)
+request 2: answers differ (241 bytes in)
+request 3: answers differ (78 bytes in)
+request 4: answers differ (144 bytes in)
+request 5: answers differ (24 bytes in)
+<span class="s">requests=10000 mismatches=10000 lost=0</span>
+exit=1</pre>
+    <p class="tiny" style="margin-top: 10px">
+      Same build and host, November 18, 2026.
+    </p>
+
+    <h3 id="demo-task">field-demo-task</h3>
+    <p>
+      The task Field ships with, for the bench, the scenario checks and a self-contained pilot. The output is the 8-byte
+      hash; the state is an 8-byte count of the requests answered. With no switch it answers requests until its input
+      closes. The <code>task</code> key takes a path with no arguments, so pass a switch through a short shell script,
+      as above and as <code>scripts/staged.sh</code> does.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Switch</th>
+            <th>Effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">--once</td>
+            <td>
+              Read one input record to end of input and write the output, for <code>adapter = "cli"</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">--kat DIR</td>
+            <td>
+              Write <code>kat.in</code> (8 zero bytes) and <code>kat.out</code> to DIR
+            </td>
+          </tr>
+          <tr>
+            <td class="m">--nondeterministic</td>
+            <td>Append the process ID to every output; fails check-task</td>
+          </tr>
+          <tr>
+            <td class="m">--echo</td>
+            <td>The output is the input record; for the flood bench</td>
+          </tr>
+          <tr>
+            <td class="m">--big-state</td>
+            <td>
+              Return a 100 KiB state record, over the default <code>state_max</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">--bug crash@N</td>
+            <td>Exit on cycle N and later</td>
+          </tr>
+          <tr>
+            <td class="m">--bug hang@N</td>
+            <td>Stop answering from cycle N</td>
+          </tr>
+          <tr>
+            <td class="m">--bug wrong@N</td>
+            <td>Flip one bit of every output from cycle N</td>
+          </tr>
+          <tr>
+            <td class="m">--bug every@M</td>
+            <td>Flip one bit when the input&#39;s tick is a multiple of M (a bug only some inputs reach)</td>
+          </tr>
+          <tr>
+            <td class="m">--bug kat</td>
+            <td>A wrong answer to the known-answer test only</td>
+          </tr>
+          <tr>
+            <td class="m">--bug net@N</td>
+            <td>
+              Right outputs, and from cycle N also 100 UDP datagrams per request to <code>FIELD_DEMO_NET</code>{' '}
+              (host:port, default 127.0.0.1:9)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Every --bug kind except kat acts on ordinary requests only, never on the known-answer test. The bugs make bad new
+      builds for the staged-update and flood tests. From tasks/demo/main.rs.
+    </p>
+
+    <h2 id="config">Configuration</h2>
+    <p>
+      One file, one <code>key = value</code> per line, <code>#</code> comments, strings in double quotes or bare. Every
+      key has a default. An unknown key, or a value the supervisor cannot honor, stops <code>field</code> with exit 2,
+      so a typo cannot run the defaults. Relative paths are relative to the working directory.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Default</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">task</td>
+            <td class="m">/opt/field/task</td>
+            <td>The replica executable</td>
+          </tr>
+          <tr>
+            <td class="m">adapter</td>
+            <td class="m">none</td>
+            <td>
+              <code>none</code> (the request protocol) or <code>cli</code> (a run-once program)
+            </td>
+          </tr>
+          <tr>
+            <td class="m">input</td>
+            <td class="m">serial:/dev/ttyS1:9600</td>
+            <td>
+              The source: <code>tick</code>, <code>file:</code>, <code>serial:</code>, <code>tcp:</code> or{' '}
+              <code>cmd:</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">input_backlog</td>
+            <td class="m">queue</td>
+            <td>
+              <code>queue</code> takes every record in order; <code>newest</code> skips what queued up (since 0.3.0)
+            </td>
+          </tr>
+          <tr>
+            <td class="m">period_ms</td>
+            <td class="m">1000</td>
+            <td>Minimum time between cycles; 0 is as fast as the source</td>
+          </tr>
+          <tr>
+            <td class="m">output</td>
+            <td class="m">file:/var/field/out</td>
+            <td>
+              The sink: <code>file:</code>, <code>serial:</code>, <code>tcp:</code>, <code>cmd:</code> or{' '}
+              <code>none</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">dir</td>
+            <td class="m">/var/field</td>
+            <td>Where events.csv, summary.txt and checkpoint go; created if missing</td>
+          </tr>
+          <tr>
+            <td class="m">kat_input</td>
+            <td class="m">/opt/field/kat.in</td>
+            <td>The known-answer test input record</td>
+          </tr>
+          <tr>
+            <td class="m">kat_output</td>
+            <td class="m">/opt/field/kat.out</td>
+            <td>Its correct output record</td>
+          </tr>
+          <tr>
+            <td class="m">replicas</td>
+            <td class="m">3</td>
+            <td>Fixed by quorum 0.4.0; any other value is refused</td>
+          </tr>
+          <tr>
+            <td class="m">strikes</td>
+            <td class="m">3</td>
+            <td>Outvotes in a window that start the known-answer test; fixed</td>
+          </tr>
+          <tr>
+            <td class="m">window</td>
+            <td class="m">200</td>
+            <td>The strike window in cycles; fixed</td>
+          </tr>
+          <tr>
+            <td class="m">kat_every</td>
+            <td class="m">64</td>
+            <td>Cycles between known-answer tests on the last replica</td>
+          </tr>
+          <tr>
+            <td class="m">checkpoint_every</td>
+            <td class="m">100</td>
+            <td>Cycles between checkpoints</td>
+          </tr>
+          <tr>
+            <td class="m">summary_every</td>
+            <td class="m">1000</td>
+            <td>Cycles between summaries and progress lines</td>
+          </tr>
+          <tr>
+            <td class="m">restart_retired</td>
+            <td class="m">false</td>
+            <td>
+              Start a fresh process in a retired slot after the cool-down; it must pass the known-answer test twice
+            </td>
+          </tr>
+          <tr>
+            <td class="m">cooldown_s</td>
+            <td class="m">600</td>
+            <td>The cool-down in seconds; kept in the checkpoint, so it survives a reset</td>
+          </tr>
+          <tr>
+            <td class="m">memory_mb</td>
+            <td class="m">128</td>
+            <td>Address-space limit per process (Linux)</td>
+          </tr>
+          <tr>
+            <td class="m">task_network</td>
+            <td class="m">deny</td>
+            <td>
+              <code>deny</code>: a task process can open AF_UNIX sockets only; <code>allow</code> turns the lock off
+              (since 0.3.0)
+            </td>
+          </tr>
+          <tr>
+            <td class="m">cpu_percent</td>
+            <td class="m">0</td>
+            <td>CPU share of the supervisor and its task processes; 0 is uncapped</td>
+          </tr>
+          <tr>
+            <td class="m">reply_timeout_ms</td>
+            <td class="m">2000</td>
+            <td>Deadline for the request and the reply; a late replica is lost</td>
+          </tr>
+          <tr>
+            <td class="m">heartbeat</td>
+            <td class="m">none</td>
+            <td>
+              <code>file:</code>, <code>serial:</code> or <code>tcp:</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">heartbeat_every_s</td>
+            <td class="m">3600</td>
+            <td>Seconds between heartbeat lines</td>
+          </tr>
+          <tr>
+            <td class="m">policy</td>
+            <td class="m">shrink</td>
+            <td>
+              <code>shrink</code> (vote, compare, self-check) or <code>tmr</code> (vote, compare, halt on one)
+            </td>
+          </tr>
+          <tr>
+            <td class="m">on_halt</td>
+            <td class="m">idle</td>
+            <td>
+              <code>idle</code>: no cycles, the heartbeat says halted, a restart can end it. <code>exit</code>: summary,
+              exit 0.
+            </td>
+          </tr>
+          <tr>
+            <td class="m">record_max</td>
+            <td class="m">65536</td>
+            <td>Largest input or output record, bytes</td>
+          </tr>
+          <tr>
+            <td class="m">state_max</td>
+            <td class="m">65536</td>
+            <td>Largest state record, bytes</td>
+          </tr>
+          <tr>
+            <td class="m">max_cycles</td>
+            <td class="m">0</td>
+            <td>Stop after this many cycles; 0 is unlimited. Tests and the bench.</td>
+          </tr>
+          <tr>
+            <td class="m">max_seconds</td>
+            <td class="m">0</td>
+            <td>Stop after this many seconds; 0 is unlimited</td>
+          </tr>
+          <tr>
+            <td class="m">faults</td>
+            <td class="m">none</td>
+            <td>A fault schedule; tests and a self-contained pilot</td>
+          </tr>
+          <tr>
+            <td class="m">oracle</td>
+            <td class="m">none</td>
+            <td>A fourth, unfaulted instance of the task that scores every delivered output; tests only</td>
+          </tr>
+          <tr>
+            <td class="m">candidate</td>
+            <td class="m">none</td>
+            <td>A new build of the task, brought in by staged update (since 0.2.0)</td>
+          </tr>
+          <tr>
+            <td class="m">candidate_cycles</td>
+            <td class="m">1000</td>
+            <td>Clean cycles per trial of a staged update</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">Defaults from Config::default in src/config.rs, the same as spec section 9.</p>
+    <h3 id="endpoints">Sources and sinks</h3>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>As input</th>
+            <th>As output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">tick</td>
+            <td>The cycle number as an 8-byte record</td>
+            <td>Refused</td>
+          </tr>
+          <tr>
+            <td class="m">file:PATH</td>
+            <td>Length-prefixed records; the end of the file ends the run cleanly</td>
+            <td>Cycle (8 bytes), length (4 bytes), bytes; cut back on a resume</td>
+          </tr>
+          <tr>
+            <td class="m">serial:DEVICE:BAUD</td>
+            <td>One line per record (raw mode, 8N1, no flow control)</td>
+            <td>
+              A text line <code>&lt;cycle&gt;,&lt;bytes&gt;</code>, so keep the output ASCII
+            </td>
+          </tr>
+          <tr>
+            <td class="m">tcp:HOST:PORT</td>
+            <td>Connects out once and reads length-prefixed records</td>
+            <td>Cycle, length, bytes</td>
+          </tr>
+          <tr>
+            <td class="m">cmd:PROGRAM ARGS</td>
+            <td>Runs once per cycle; its output is the record. A failure is logged and the cycle is not used.</td>
+            <td>
+              Runs once per output, bytes on its standard input, <code>FIELD_CYCLE</code> in its environment
+            </td>
+          </tr>
+          <tr>
+            <td class="m">none</td>
+            <td>Refused</td>
+            <td>Nothing is delivered</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      The heartbeat takes file:, serial:, tcp: or none. Field never listens for connections: every tcp: endpoint
+      connects out. Spec section 8.
+    </p>
+    <p style="margin-top: 16px">
+      <strong>Checkpoint identity.</strong> The keys that decide results are <code>task</code>, <code>adapter</code>,{' '}
+      <code>input</code>, <code>output</code>, <code>policy</code>, <code>replicas</code>, <code>strikes</code>,{' '}
+      <code>window</code>, <code>kat_every</code>, <code>record_max</code>, <code>state_max</code>, the known-answer
+      records and the fault schedule by content, <code>oracle</code>, and <code>input_backlog</code> when it is{' '}
+      <code>newest</code>. Change one and Field refuses the old checkpoint with exit 2 and does not overwrite it; move
+      it away to start fresh. The other keys only tune a run and can change between restarts. <code>candidate</code> is
+      not in the identity: a staged update comes in on the running run.
+    </p>
+
+    <h2 id="outputs">Outputs</h2>
+    <p>
+      In <code>dir</code>: <code>events.csv</code>, <code>summary.txt</code> and <code>checkpoint</code>. Delivered
+      outputs go to the sink, in order, with their cycle number. Every number comes from the run&#39;s counters; nothing
+      is estimated.
+    </p>
+    <h3 id="events">events.csv</h3>
+    <p>
+      One line per event: <code>cycle,event,detail</code>.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">outvoted</td>
+            <td>The replica that lost the vote</td>
+          </tr>
+          <tr>
+            <td class="m">retired</td>
+            <td>
+              The replica and why: <code>strikes</code>, <code>diagnose</code>, <code>periodic</code>,{' '}
+              <code>startup</code>, <code>restart</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">cleared</td>
+            <td>The replica passed the known-answer test; its strikes are cleared</td>
+          </tr>
+          <tr>
+            <td class="m">lost</td>
+            <td>The replica did not answer in time, exited, or sent a record over the limit</td>
+          </tr>
+          <tr>
+            <td class="m">restarted</td>
+            <td>A fresh process took the retired slot</td>
+          </tr>
+          <tr>
+            <td class="m">detected</td>
+            <td>
+              The mode (<code>vote</code>, <code>compare</code>, <code>selfcheck</code>), with <code>bytes</code> when
+              the hashes agreed and the bytes did not; <code>update</code> when the old build disagrees in a staged
+              update
+            </td>
+          </tr>
+          <tr>
+            <td class="m">wrong</td>
+            <td>The mode; only with an oracle (tests)</td>
+          </tr>
+          <tr>
+            <td class="m">halted</td>
+            <td>Replicas alive</td>
+          </tr>
+          <tr>
+            <td class="m">stopped</td>
+            <td>
+              Why: <code>completed</code>, <code>time-limit</code>, <code>signal</code>, <code>end-of-input</code>,{' '}
+              <code>halted</code>, <code>sink-error ...</code>, <code>input-error ...</code>
+            </td>
+          </tr>
+          <tr>
+            <td class="m">resumed</td>
+            <td>
+              The resume count, with <code>halted</code> when it resumed a halted run
+            </td>
+          </tr>
+          <tr>
+            <td class="m">progress</td>
+            <td>Delivered, detected, alive (and wrong, with an oracle), every summary_every cycles</td>
+          </tr>
+          <tr>
+            <td class="m">injected</td>
+            <td>A scheduled fault, kind:replica (tests)</td>
+          </tr>
+          <tr>
+            <td class="m">source</td>
+            <td>
+              <code>backlog</code> and <code>caught-up skipped=N from=C</code> (input backlog), <code>overlong N</code>{' '}
+              (a serial line cut at <code>record_max</code>), or why a <code>cmd:</code> source failed
+            </td>
+          </tr>
+          <tr>
+            <td class="m">candidate</td>
+            <td>
+              A staged update: <code>started N</code>, <code>promoted N</code>, <code>rejected N WHY</code>,{' '}
+              <code>rolled-back N</code>, <code>paused quorum</code>, <code>updated</code>, <code>removed</code>,{' '}
+              <code>changed</code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">Spec section 8 and the calls to log.event in src/supervisor.rs.</p>
+    <p style="margin-top: 16px">
+      Identical events on consecutive cycles collapse to the first line plus a closing line with the count, for example{' '}
+      <code>500,wrong,vote repeated 251x cycles 250-500</code>, so a long run stays small. The file goes to the kernel
+      after every cycle and is synced at every checkpoint.
+    </p>
+
+    <h3 id="summary">summary.txt</h3>
+    <p>
+      Written every <code>summary_every</code> cycles, at a halt and at a stop. <code>field run</code> also prints it
+      when it stops. The lines, in order:
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Line</th>
+            <th>Contents</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">field=</td>
+            <td>Field and quorum versions, policy, task, adapter, input, output</td>
+          </tr>
+          <tr>
+            <td class="m">cycles=</td>
+            <td>
+              Cycles, delivered, detected, wrong (<code>-</code> with no oracle), alive, mode, last delivered cycle,
+              known-answer tests
+            </td>
+          </tr>
+          <tr>
+            <td class="m">stopped=</td>
+            <td>
+              Why (<code>running</code> while it runs), the cycle, the halt cycle or <code>never</code>, start and write
+              time in UTC
+            </td>
+          </tr>
+          <tr>
+            <td class="m">checkpoint:</td>
+            <td>Interval, resumes, last cycle, halted</td>
+          </tr>
+          <tr>
+            <td class="m">footprint:</td>
+            <td>Peak resident memory of the supervisor and of its task processes, CPU time, wall time</td>
+          </tr>
+          <tr>
+            <td class="m">limits:</td>
+            <td>Memory, CPU share, run cap, reply timeout, period, task network</td>
+          </tr>
+          <tr>
+            <td class="m">input:</td>
+            <td>
+              Backlog mode and records skipped; only with <code>newest</code> or when records were skipped
+            </td>
+          </tr>
+          <tr>
+            <td class="m">update:</td>
+            <td>
+              The candidate, the build in each slot and the state, for example <code>trial:2 clean=417/1000</code>,{' '}
+              <code>updated@2000</code> or <code>rejected:1:old-disagrees@1500</code>; only with a candidate
+            </td>
+          </tr>
+          <tr>
+            <td class="m">heartbeat:</td>
+            <td>Lines sent and failed; only with a heartbeat</td>
+          </tr>
+          <tr>
+            <td class="m">faults:, fault:</td>
+            <td>
+              With a fault schedule: injected, caught, mean and longest latency in cycles, then one line per fault
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">From src/summary.rs.</p>
+
+    <h3 id="heartbeat">Heartbeat</h3>
+    <p>
+      One line every <code>heartbeat_every_s</code> seconds to a file (which holds the latest line only), a serial port
+      or a TCP stream:{' '}
+      <code>MRU,&lt;cycle&gt;,&lt;mode&gt;,&lt;alive&gt;,&lt;delivered&gt;,&lt;detected&gt;,&lt;resumes&gt;</code>. A
+      halted run keeps sending it with the mode <code>halted</code>. A write that runs out of time counts as failed, and
+      the run goes on.
+    </p>
+
+    <h3 id="checkpoint">Checkpoint and resume</h3>
+    <p>
+      Field writes <code>checkpoint</code> (one <code>key=value</code> per line) every <code>checkpoint_every</code>{' '}
+      cycles, and on every cycle in which a replica was lost, retired, cleared or restarted. It writes a new file, syncs
+      it, renames it over the old one and syncs the directory, so a power cut leaves the old checkpoint or the new one.
+    </p>
+    <p>
+      On start with a checkpoint from the same configuration, Field resumes. It cuts <code>events.csv</code> and a file
+      sink back to the checkpoint&#39;s lengths, logs <code>resumed</code>, starts replicas for the slots that were
+      alive, writes a checkpoint at once, and continues the counts and the cycle number. A retired replica stays
+      retired. The cycles after the last checkpoint are lost: their inputs were read once and cannot be replayed. A
+      serial or TCP sink has already received those outputs, so cycle numbers can repeat there; a file sink never
+      repeats. A halted run keeps its checkpoint with the halt in it. A completed run keeps it too: the same command
+      again resumes and stops at once.
+    </p>
+    <p>
+      The quick start run, started again with the same command and stopped after four more cycles, leaves this{' '}
+      <code>events.csv</code>:
+    </p>
+    <pre class="pre" tabindex="0">cycle,event,detail
+6,stopped,signal
+<span class="s">6,resumed,1</span>
+10,stopped,signal</pre>
+    <p class="tiny" style="margin-top: 10px">
+      Same build and host, November 18, 2026.
+    </p>
+
+    <h2 id="staged">Staged updates</h2>
+    <p>
+      Since v0.2.0. A new build of the task is the one change that reaches every replica at once. Three replicas that
+      all took the same bad build agree on its wrong answer, or all stop together. With <code>candidate</code> set to
+      the new build, Field brings it in one slot at a time and keeps the old build as the check until the last slot
+      switches. Spec section 10.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>First trial.</strong> With three replicas alive, slot 2 starts the new build, which must pass the
+        known-answer test twice. It then votes against two slots on the old build for <code>candidate_cycles</code>{' '}
+        clean cycles.
+      </li>
+      <li>
+        <strong>Second trial.</strong> Slot 1 takes the new build for as many cycles again. An output is delivered only
+        if the slot left on the old build gave the same bytes, so two slots on the new build cannot outvote it.
+      </li>
+      <li>
+        <strong>Last switch.</strong> Slot 0 switches, and the log says <code>updated</code>.
+      </li>
+      <li>
+        <strong>Zero strikes.</strong> Until then, one fault of a slot on the new build rejects it: an outvote, a lost
+        reply, a failed known-answer test, a cycle with no agreement, or a disagreement with the old build, logged as{' '}
+        <code>old-disagrees</code>. Field takes the new build out of every slot and starts the old build there again.
+        The same candidate is not tried again.
+      </li>
+      <li>
+        <strong>Paused.</strong> If a slot on the old build is lost, the new build comes out of every slot and the
+        update waits until three replicas are alive (<code>paused quorum</code>).
+      </li>
+      <li>
+        <strong>Resets.</strong> The checkpoint keeps each slot&#39;s build, the trial and a hash of the candidate file,
+        so a resume continues the trial. A changed or removed candidate puts every slot back on the old build. To try a
+        rejected candidate again, remove it from the configuration for one start.
+      </li>
+    </ul>
+    <p>
+      A run with a build that goes wrong on cycle 150, in the second trial. Save <code>staged.conf</code> in the
+      repository root:
+    </p>
+    <pre class="pre" tabindex="0">task       = "target/release/field-demo-task"
+candidate  = "builds/new-build.sh"   <span class="c"># exec target/release/field-demo-task --bug wrong@150</span>
+candidate_cycles = 100
+input      = "tick"
+period_ms  = 0
+output     = "none"
+dir        = "out-staged"
+kat_input  = "tasks/demo/kat.in"
+kat_output = "tasks/demo/kat.out"
+max_cycles = 500
+reply_timeout_ms = 200
+oracle     = "target/release/field-demo-task"</pre>
+    <p style="margin-top: 16px">
+      <code>target/release/field run staged.conf</code> ends with <code>delivered=499 detected=1 wrong=0 alive=3</code>{' '}
+      and <code>update: candidate=builds/new-build.sh builds=old,old,old state=rejected:1:old-disagrees@150</code>. The
+      events:
+    </p>
+    <pre class="pre" tabindex="0">cycle,event,detail
+0,candidate,started 2
+100,candidate,promoted 2
+100,candidate,started 1
+150,detected,update
+150,outvoted,0
+<span class="s">150,candidate,rejected 1 old-disagrees</span>
+150,candidate,rolled-back 1
+150,candidate,rolled-back 2
+500,stopped,completed</pre>
+    <p class="tiny" style="margin-top: 10px">
+      Same build and host, November 18, 2026.
+    </p>
+    <p style="margin-top: 16px">
+      The staged-update bench brings each bad build of the demo task in two ways on the same 5,000 cycles: all at once,
+      with <code>task</code> set to the new build, and by staged update, with <code>candidate</code> set to the new
+      build and <code>candidate_cycles = 1000</code>.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>New build</th>
+            <th>All at once</th>
+            <th>Staged update</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">good</td>
+            <td class="m">5,000 delivered, 0 wrong</td>
+            <td class="m">updated@2000; 5,000 delivered, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">crash@500</td>
+            <td class="m">499 delivered; all three lost, halted at 500</td>
+            <td class="m">rejected:2:lost@500; 5,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+          <tr>
+            <td class="m">hang@500</td>
+            <td class="m">499 delivered; all three lost, halted at 500</td>
+            <td class="m">rejected:2:lost@500; 5,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+          <tr>
+            <td class="m">wrong@500</td>
+            <td class="m">5,000 delivered, 4,501 wrong</td>
+            <td class="m">rejected:2:outvoted@500; 5,000 delivered, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">every@97</td>
+            <td class="m">5,000 delivered, 51 wrong</td>
+            <td class="m">rejected:2:outvoted@97; 5,000 delivered, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">kat</td>
+            <td class="m">0 delivered; no replica starts</td>
+            <td class="m">rejected:2:startup@0; 5,000 delivered, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">crash@1500</td>
+            <td class="m">1,499 delivered; halted at 1,500</td>
+            <td class="m">rejected:1:lost@1500; 4,999 delivered, 1 detected, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">hang@1500</td>
+            <td class="m">1,499 delivered; halted at 1,500</td>
+            <td class="m">rejected:1:lost@1500; 4,999 delivered, 1 detected, 0 wrong</td>
+          </tr>
+          <tr>
+            <td class="m">wrong@1500</td>
+            <td class="m">5,000 delivered, 3,501 wrong</td>
+            <td class="m">rejected:1:old-disagrees@1500; 4,999 delivered, 1 detected, 0 wrong</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">wrong@2500</td>
+            <td class="m">5,000 delivered, 2,501 wrong</td>
+            <td class="m">updated@2000; 5,000 delivered, 2,501 wrong</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From <a href={`${tree}/docs/results/2026-11-14-darwin-arm64/staged`}>staged.csv</a>, written by scripts/staged.sh
+      on November 14, 2026: field 0.2.0 on macOS, one Apple M4, the demo task, reply timeout 200 ms, as fast as the task
+      answers. The oracle is the old build, so wrong counts outputs the old build would not have given. One host, one
+      run per row.
+    </p>
+    <p style="margin-top: 16px">
+      The last row is the limit: a bug that first shows after the last switch has no old build left to disagree with,
+      and gets through. A longer trial covers more inputs and more time. The new build must give the same outputs as the
+      old one; an update meant to change outputs is not covered. Write-up:{' '}
+      <a href="https://mru.space/research/field-staged-updates/">staged updates</a>.
+    </p>
+
+    <h2 id="floods">Flood limits</h2>
+    <p>
+      Since v0.3.0. Field does not run a network and cannot stop a flood on one. It makes sure a Field node does not
+      start one, whatever build of the task it runs, and keeps working when its own source is flooded or its own sink is
+      jammed. Spec section 11.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>Task network lock.</strong> With <code>task_network = "deny"</code>, the default, Field sets a seccomp
+        filter in each task process (the oracle too) between fork and exec. <code>socket</code> fails with EACCES for
+        every address family but AF_UNIX. On 32-bit ARM the old <code>socketcall</code> is refused too, and a system
+        call from another architecture is refused on every target. Enforced on Linux on x86_64, ARM64 and 32-bit ARM.
+        Elsewhere the summary says <code>task_network=deny(not-enforced-here)</code>. If the kernel refuses the filter,
+        the task does not start. User-mode emulators refuse seccomp filters, so the scenario checks under emulation set{' '}
+        <code>allow</code>.
+      </li>
+      <li>
+        <strong>Input backlog.</strong> With <code>input_backlog = "newest"</code>, after the cycle&#39;s record Field
+        reads every complete record already waiting, for at most one period (10 ms when <code>period_ms</code> is 0),
+        keeps the newest and skips the rest. It logs <code>source,backlog</code> once when skipping begins and{' '}
+        <code>source,caught-up</code> once when it ends. For <code>tcp:</code>, <code>serial:</code> and{' '}
+        <code>file:</code> sources. Use it when only the current value matters, such as a sensor reading. Keep{' '}
+        <code>queue</code> when every record must be processed, such as a command stream.
+      </li>
+      <li>
+        <strong>Writes with a deadline.</strong> Every write to a TCP peer or a serial port, for outputs and the
+        heartbeat, ends at 5 s. An output write that runs out of time stops the run with{' '}
+        <code>sink-error tcp: timeout</code> and exit 1, and keeps the checkpoint, so the service manager can start it
+        again.
+      </li>
+      <li>
+        <strong>Serial lines.</strong> A serial line longer than <code>record_max</code> is cut as it arrives; the rest
+        is counted and dropped until its newline. In 0.2.0 a source that never sent a newline grew the supervisor&#39;s
+        memory without limit.
+      </li>
+    </ul>
+    <p>
+      A staged update compares outputs, so a build that floods a network while every output is right passes it. The lock
+      is what stops that build. The flood bench, with the demo task&#39;s <code>--bug net@500</code> build on 2,000
+      cycles of 2 ms:
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>task_network</th>
+            <th>Rollout</th>
+            <th>Datagrams received</th>
+            <th>Outputs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">allow</td>
+            <td>all at once</td>
+            <td class="m">450,300</td>
+            <td class="m">2,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+          <tr>
+            <td class="m">allow</td>
+            <td>staged, updated@1000</td>
+            <td class="m">400,100</td>
+            <td class="m">2,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">deny</td>
+            <td>all at once</td>
+            <td class="m">0</td>
+            <td class="m">2,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">deny</td>
+            <td>staged, updated@1000</td>
+            <td class="m">0</td>
+            <td class="m">2,000 delivered, 0 wrong, 3 alive</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From lock.csv. From cycle 500 the build sends 100 UDP datagrams per request to a local listener; staged runs use{' '}
+      candidate_cycles = 500. Datagrams received is what the listener read during the run.
+    </p>
+    <p style="margin-top: 16px">
+      A TCP source sends 16-byte records into 1,000 cycles of 10 ms (100 per second). The task echoes each record, and a
+      collector measures the age of the input when its output arrives:
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Records per second</th>
+            <th>input_backlog</th>
+            <th>Median age</th>
+            <th>Age at most</th>
+            <th>Skipped</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="m">1,000</td>
+            <td class="m">queue</td>
+            <td class="m">5,553.7 ms</td>
+            <td class="m">11,081.3 ms</td>
+            <td class="m">0</td>
+          </tr>
+          <tr>
+            <td class="m">1,000</td>
+            <td class="m">newest</td>
+            <td class="m">0.6 ms</td>
+            <td class="m">6.6 ms</td>
+            <td class="m">11,175</td>
+          </tr>
+          <tr>
+            <td class="m">10,000</td>
+            <td class="m">queue</td>
+            <td class="m">6,006.7 ms</td>
+            <td class="m">12,003.7 ms</td>
+            <td class="m">0</td>
+          </tr>
+          <tr class="hl">
+            <td class="m">10,000</td>
+            <td class="m">newest</td>
+            <td class="m">0.8 ms</td>
+            <td class="m">11.2 ms</td>
+            <td class="m">122,489</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From backlog.csv. Every run delivered 1,000 outputs. At 10,000 per second the backlog never cleared, and the log
+      has one source,backlog line for it. Peak supervisor memory was 13,108 to 13,236 KiB in all four runs.
+    </p>
+    <p style="margin-top: 16px">
+      A TCP output peer that accepts and never reads (receive buffer 4 KiB), with the tick source as fast as the task
+      answers and <code>max_seconds = 30</code>. Field 0.2.0 hung once the buffers filled: no cycles, and its 30 s run
+      cap never ran; it was killed at 60 s. Field 0.3.0 ended at 7.7 s with <code>sink-error</code> and exit 1, after
+      70,428 delivered outputs, with the checkpoint kept.
+    </p>
+    <p class="tiny" style="margin-top: 10px">
+      All flood numbers from stall.csv, lock.csv, backlog.csv and the run directories in{' '}
+      <a href={`${tree}/docs/results/2026-11-16-linux-aarch64/flood`}>docs/results/2026-11-16-linux-aarch64/flood</a>,
+      written by scripts/flood.py on November 16, 2026: field 0.3.0 on Linux 6.10.14 aarch64 in Docker Desktop on one
+      Apple M4; the 0.2.0 build is from tag v0.2.0. One run per row, one host.
+    </p>
+    <p style="margin-top: 16px">
+      What it does not cover: a flood on a network, which Field does not run; a <code>cmd:</code> source or sink, which
+      is the operator&#39;s program and not the task; a source faster than Field can read in one period; a backlog under{' '}
+      <code>queue</code>; and overload of the processor, which is the CPU share&#39;s job.
+    </p>
+
+    <h2 id="tests">Tests</h2>
+    <pre
+      class="pre"
+      tabindex="0"
+    >cargo test --release          <span class="c"># 39 unit tests, 29 integration tests</span>
+./scripts/scenarios.sh        <span class="c"># 26 checks: 23 ported from mruspace/flight, 3 on staged updates</span>
+./scripts/power-cut.sh        <span class="c"># ten kills at random cycles, one resume each</span>
+./scripts/staged.sh           <span class="c"># each bad build, all at once and by staged update</span>
+python3 -I scripts/flood.py   <span class="c"># the network lock, the input backlog and a stalled peer</span></pre>
+    <p style="margin-top: 16px">
+      The unit tests are 29 in the supervisor and 10 in the demo task. The integration tests are in eight files under{' '}
+      <code>tests/</code>. The scenario checks are the ones from mruspace/flight that apply to a supervisor with a
+      black-box task; the checks on the radiation sensor and on stuck bits inside the task do not apply. The power-cut
+      check kills the supervisor with SIGKILL ten times at random cycles:
+    </p>
+    <pre class="pre" tabindex="0">cut 1 at checkpoint cycle 120
+cut 2 at checkpoint cycle 202
+cut 3 at checkpoint cycle 280
+cut 4 at checkpoint cycle 340
+cut 5 at checkpoint cycle 400
+cut 6 at checkpoint cycle 460
+cut 7 at checkpoint cycle 500
+cut 8 at checkpoint cycle 540
+cut 9 at checkpoint cycle 560
+cut 10 at checkpoint cycle 580
+<span class="s">ok    power cuts: 10 resumes, counts equal an uninterrupted run, retired slots kept, no duplicate events</span></pre>
+    <p class="tiny" style="margin-top: 10px">
+      Same build and host, November 18, 2026. In that session, cargo test --release passed 39 unit and 29 integration
+      tests, and scripts/scenarios.sh printed &quot;all checks passed&quot;. The cut cycles are random and change from
+      run to run.
+    </p>
+    <div class="tbl-box" tabindex="0" style="margin-top: 16px">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>CI job</th>
+            <th>Where</th>
+            <th>Runs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>test</td>
+            <td>Linux x86_64, Linux ARM64, macOS (GitHub runners)</td>
+            <td>Build, unit and integration tests, scenario checks, power cuts</td>
+          </tr>
+          <tr>
+            <td>static binary</td>
+            <td>musl builds for aarch64, armv7 and x86_64, each in an emulated Alpine container</td>
+            <td>Scenario checks, with the network lock set to allow</td>
+          </tr>
+          <tr>
+            <td>lint</td>
+            <td>Linux x86_64</td>
+            <td>rustfmt and clippy with warnings as errors</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      From .github/workflows/ci.yml, on every push and pull request. The staged and flood benches are not in CI; their
+      results are in docs/results.
+    </p>
+    <p style="margin-top: 16px">
+      Of the seven bench steps in spec section 14, six are done: the scenario checks, the determinism test, the fault
+      schedule, ten power cuts (SIGKILL as the cut), staged updates and flood limits. The seven-day run on a bench twin
+      is not done; <code>scripts/soak.sh</code> starts it, and the bench twin does not exist yet.
+    </p>
+
+    <h2 id="limits">Limits</h2>
+    <ul class="sig-list">
+      <li>
+        <strong>One processor.</strong> Three replicas on one processor catch faults in the replicas, not a failure of
+        the processor. It is not a hardware-redundancy test. Replicas on a second processor over a link are planned
+        (spec section 12); none of that is built.
+      </li>
+      <li>
+        <strong>Bench only.</strong> Field has run on general-purpose processors and under emulation, not on a board in
+        a system. The power cuts are SIGKILL; a real power cut on a board is not done. Nothing here is qualification
+        evidence.
+      </li>
+      <li>
+        <strong>Staged updates.</strong> A staged update catches a bad build only while the old build still runs in a
+        slot, and only by its outputs. A false rejection is possible: a fault on the one old slot in the second trial
+        rejects a good build.
+      </li>
+      <li>
+        <strong>Floods.</strong> Field does not run a network and cannot stop a flood on one. The lock covers the task,
+        not the operator&#39;s own <code>cmd:</code> source or sink.
+      </li>
+      <li>
+        <strong>The last replica.</strong> In self-check, a fault that hits both computations alike gets through. Only
+        the periodic known-answer test catches a stuck output, after up to <code>kat_every</code> cycles.
+      </li>
+      <li>
+        <strong>Compare mode.</strong> Two replicas that disagree and both pass the known-answer test lose that cycle.
+        Two that both fail halt the run.
+      </li>
+      <li>
+        <strong>Fixed constants.</strong> <code>replicas</code>, <code>strikes</code> and <code>window</code> are 3, 3
+        and 200, constants of quorum 0.4.0. The configuration refuses other values.
+      </li>
+    </ul>
+    <DocsEnd />
+  </article>
+</DocsLayout>

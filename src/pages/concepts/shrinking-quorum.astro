@@ -9,7 +9,7 @@ const crumbs = [
   { label: 'Concepts', href: '/concepts/shrinking-quorum/' },
   { label: 'Shrinking quorum' },
 ];
-const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs';
+const proofs = 'https://github.com/mruspace/flight/blob/v0.9.0/quorum/src/lib.rs';
 ---
 
 <DocsLayout
@@ -152,26 +152,26 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs
     </p>
     <ul class="sig-list">
       <li>
-        <a href={`${proofs}#L331`}>
+        <a href={`${proofs}#L334`}>
           <code>identical_while_tmr_can_run</code>
         </a>
         : with two or more replies present, both policies give the same outcome. It compares the outcome only, not the
         mode or <code>diagnose</code>.
       </li>
       <li>
-        <a href={`${proofs}#L343`}>
+        <a href={`${proofs}#L346`}>
           <code>tmr_stops_below_two</code>
         </a>
         : with fewer than two replies present, the fixed TMR outcome is <code>Halted</code>.
       </li>
       <li>
-        <a href={`${proofs}#L352`}>
+        <a href={`${proofs}#L355`}>
           <code>shrink_halts_only_with_nothing_left</code>
         </a>
         : the shrinking quorum&#39;s outcome is <code>Halted</code> if and only if no reply is present.
       </li>
       <li>
-        <a href={`${proofs}#L362`}>
+        <a href={`${proofs}#L365`}>
           <code>delivers_only_agreed_values</code>
         </a>
         : if either policy delivers a value, at least two replies agree on it, or exactly one replica is alive and it
@@ -179,9 +179,10 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs
       </li>
     </ul>
     <p style="margin-top: 16px">
-      CI runs <code>cargo kani -p quorum -p quorum-ffi</code> on every change. Five more proofs show that the C
-      interface gives the core&#39;s answer. The proofs do not cover the health record, the diagnosis, the known-answer
-      test, timing, or the system over a run. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
+      CI runs <code>cargo kani -p quorum -p quorum-ffi</code> on every change, 16 proofs in all. Five more cover{' '}
+      <a href="/core/quorum-crate/#sensor">sensor selection</a>, and seven show that the C interface gives the
+      core&#39;s answer. The proofs do not cover the health record, the diagnosis, the known-answer test, timing, or the
+      system over a run. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
     </p>
 
     <h3 id="tested">Tested (per run)</h3>
@@ -290,7 +291,9 @@ const proofs = 'https://github.com/mruspace/flight/blob/v0.3.1/quorum/src/lib.rs
       </li>
       <li>
         <strong>Input agreement between replicas.</strong> In the demo, all replicas get the same input because it is a
-        function of the tick. Real sensor inputs need an agreement step. Mru does not provide one yet.
+        function of the tick. Mru Field reads each input once and hands every replica the same bytes. For up to three
+        readings of one quantity, <a href="/core/quorum-crate/#sensor">sensor selection</a> chooses one value within a
+        tolerance. A step that makes inputs read by each replica equal before it computes is not built.
       </li>
       <li>
         <strong>Replica determinism under interrupts and scheduling.</strong> The replicas must compute the same bits.
