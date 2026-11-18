@@ -8,7 +8,9 @@ const crumbs = [
   { label: 'Core runtime', href: '/core/quorum-crate/' },
   { label: 'F´ components' },
 ];
-const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
+const repo = 'https://github.com/mruspace/flight/blob/v0.9.0';
+// The docs got the run 4 approval and the 16-proof count after the v0.9.0 tag.
+const docs = 'https://github.com/mruspace/flight/blob/main/docs';
 ---
 
 <DocsLayout
@@ -24,9 +26,15 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
     { href: '#components', label: 'Components' },
     { href: '#manager', label: 'RedundancyManager' },
     { href: '#slots', label: 'Spares and standby' },
-    { href: '#state', label: 'Resets' },
+    { href: '#auto-reset', label: 'Automatic resets' },
+    { href: '#state', label: 'State across resets' },
+    { href: '#sensors', label: 'Sensors' },
     { href: '#cycle', label: 'One cycle' },
     { href: '#deployment', label: 'Deployment' },
+    { href: '#links', label: 'Message check' },
+    { href: '#opssat-run3', label: 'On OPS-SAT' },
+    { href: '#opssat-run4', label: 'Run 4' },
+    { href: '#cfs', label: 'cFS application' },
     { href: '#c', label: 'C interface' },
     { href: '#tests', label: 'Verification' },
     { href: '#build', label: 'Build and test' },
@@ -47,15 +55,17 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       <span class="pill">F&#180; v4.4.1</span>
       <span class="pill">C++14</span>
       <span class="pill sig">
-        <span class="dot"></span>45 unit tests
+        <span class="dot"></span>59 unit tests
       </span>
-      <span class="pill">v0.7.0</span>
+      <span class="pill">v0.9.0</span>
     </div>
     <p>
       The source is in <a href={`${repo}/fprime`}>fprime/</a> of mruspace/flight. The requirements and the design were
       written and approved in F&#180;&#39;s own order, requirements first, then the model, then the code:{' '}
-      <a href={`${repo}/docs/fprime-requirements.md`}>requirements</a>,{' '}
-      <a href={`${repo}/docs/fprime-design-fpp.md`}>design and results</a>.
+      <a href={`${docs}/fprime-requirements.md`}>requirements</a>,{' '}
+      <a href={`${docs}/fprime-design-fpp.md`}>design and results</a>. The{' '}
+      <a href={`${docs}/fault-model.md`}>fault model</a> maps each simulated fault to the failure it stands for on a
+      real system.
     </p>
 
     <h2 id="components">Components</h2>
@@ -76,7 +86,7 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
             <td>active</td>
             <td>
               Asks the replicas for a result each cycle, decides with the core, delivers or rejects, steps the mode down
-              as replicas are lost, and runs known-answer tests.
+              as replicas are lost, runs known-answer tests, and resets a replica that falls silent.
             </td>
           </tr>
           <tr>
@@ -95,12 +105,23 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
           </tr>
           <tr>
             <td>
+              <code>SensorVoter</code>
+            </td>
+            <td>passive</td>
+            <td>
+              Chooses one value each cycle from up to three readings of one quantity, within a tolerance, and excludes a
+              sensor that keeps disagreeing (MRU-SV-001 to 007).
+            </td>
+          </tr>
+          <tr>
+            <td>
               <code>FaultInjector</code>
             </td>
             <td>passive, test builds only</td>
             <td>
               Sits between the manager and the replicas in a test topology: silence (kill, hang), a stuck value, and bit
-              flips in a replica&#39;s working memory, with the same random upsets as the demo for a seed.
+              flips in a replica&#39;s working memory, with the same random upsets as the demo for a seed. A reset on{' '}
+              <code>resetIn</code> ends a hang that has started (MRU-FI-004, event <code>ResetApplied</code>).
             </td>
           </tr>
           <tr>
@@ -114,6 +135,16 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
               summary. The manager never sees it.
             </td>
           </tr>
+          <tr>
+            <td>
+              <code>SensorSim</code>
+            </td>
+            <td>passive, test builds only</td>
+            <td>
+              Sends three noisy readings of a known value, with spike, drift, stuck and drop faults. Scores each chosen
+              value against the true value, and a plain average as a baseline (MRU-SS-001 to 005).
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -121,7 +152,10 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       In a flight topology the manager connects to the replicas directly, so no test code is in the flight path.
     </p>
     <p style="margin-top: 16px">
-      The replicas run as three threads of one deployment. Three processes, and then separate processors, use the same
+      In <code>MruOpsSat</code>, the first deployment, the replicas run as three threads of one process. Since v0.7.0,{' '}
+      <code>MruQuorum</code> runs each replica as its own <code>MruReplica</code> process. The processes link to the
+      manager through F&#180;&#39;s GenericHub over a <code>SOCK_SEQPACKET</code> socket pair, driven by the{' '}
+      <code>SeqPacketDriver</code> component. That deployment flew in run 3 on October 28, 2026. Both use the same
       components.
     </p>
 
@@ -144,8 +178,8 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
           <tr>
             <td>Output ports</td>
             <td>
-              <code>requestOut[3]</code>, <code>enableOut[3]</code>, <code>resultOut</code>, <code>healthStrike</code>,{' '}
-              <code>healthClear</code>, <code>pingOut</code>
+              <code>requestOut[3]</code>, <code>enableOut[3]</code>, <code>resetOut[3]</code>, <code>resultOut</code>,{' '}
+              <code>healthStrike</code>, <code>healthClear</code>, <code>pingOut</code>
             </td>
           </tr>
           <tr>
@@ -157,21 +191,24 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
           <tr>
             <td>Parameters</td>
             <td>
-              <code>KatPeriod</code> (64 cycles), <code>StateSavePeriod</code> (1,000 cycles; 0 saves on change only)
+              <code>KatPeriod</code> (U32, 64 cycles), <code>StateSavePeriod</code> (U32, 1,000 cycles; 0 saves on
+              change only), <code>ResetLimit</code> (U8, default 0: automatic resets off)
             </td>
           </tr>
           <tr>
             <td>Telemetry</td>
             <td>
               <code>CurrentPolicy</code>, <code>CurrentMode</code>, <code>LiveReplicas</code>, <code>Retired</code>,{' '}
-              <code>Slots</code> on change; <code>Delivered</code>, <code>Caught</code> each cycle
+              <code>Slots</code>, <code>Resets</code> on change; <code>Delivered</code>, <code>Caught</code>,{' '}
+              <code>Late</code> each cycle
             </td>
           </tr>
           <tr>
             <td>Events</td>
             <td>
               Mode changes, caught disagreements (throttled), diagnoses, retirements with their reason, standby and
-              admission, the state file, and the halt
+              admission, withheld cycles (<code>CycleWithheld</code>), automatic resets (<code>ReplicaReset</code>,{' '}
+              <code>ResetsExhausted</code>), the state file, and the halt
             </td>
           </tr>
         </tbody>
@@ -181,7 +218,8 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
     <p style="margin-top: 16px">
       A replica is retired when its known-answer result is wrong or missing, or after three missed cycles in a row. The
       event gives the reason: a diagnosis that failed or was not answered, a periodic test on the last replica that
-      failed or was not answered, or lost.
+      failed or was not answered, or lost. With <code>ResetLimit</code> above 0, a replica retired for silence gets an
+      automatic reset (<a href="#auto-reset">below</a>).
     </p>
     <p>
       F&#180; returns 0 for a parameter that was never loaded. The manager then uses the model&#39;s defaults, so a
@@ -205,13 +243,168 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       </li>
     </ul>
 
-    <h2 id="state">Resets</h2>
+    <h2 id="auto-reset">Automatic resets</h2>
+    <p>
+      A replica can fall silent for a reason that a reset cures: for example, a device on a bus that stops answering
+      until it is reset. Since v0.8.0 the manager handles this case (MRU-RM-024). It is off by default:{' '}
+      <code>ResetLimit</code> is 0.
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>Reset, then test.</strong> When a replica is retired for silence (lost, or its known answer missing),
+        the manager sends a reset on <code>resetOut</code> and emits <code>ReplicaReset</code>. At the next cycle it
+        starts an admission, the same as <code>ADMIT_REPLICA</code>&#39;s. The slot becomes ACTIVE again only on the
+        right known answer. Admissions after resets wait behind an admission in progress.
+      </li>
+      <li>
+        <strong>Bounded.</strong> A unit still silent gets the next reset. After <code>ResetLimit</code> resets the
+        manager emits <code>ResetsExhausted</code> and the slot stays RETIRED, so a dead unit cannot cause a reset loop.
+        The limit counts every reset of the slot since the manager started. An admission that passes does not clear it.
+      </li>
+      <li>
+        <strong>Never after a wrong answer.</strong> A wrong answer is not silence. A replica retired for a wrong answer
+        is never reset.
+      </li>
+    </ul>
+    <p>
+      In the runs, <code>resetOut</code> goes to <code>FaultInjector</code>. There a reset ends a hang that has started.
+      A hang scheduled for later still comes, and a kill or a stuck value stays. On a real system, <code>resetOut</code>{' '}
+      would drive the platform&#39;s reset line for that unit. Mru decides when to reset and whether to take the unit
+      back. It does not reset hardware itself.
+    </p>
+
+    <h2 id="state">State across resets</h2>
     <p>
       The manager saves the policy, the slot states and the cycle counter when one of them changes, and every{' '}
       <code>StateSavePeriod</code> cycles. The record is 21 bytes with a CRC-32. It writes a new file, flushes it and
       renames it over the old one, so a power cut leaves the old state or the new one. At start it restores a valid file
       and reports it, or starts with all slots ACTIVE and warns. Strikes are not saved: after a reset each replica
-      starts a fresh window.
+      starts a fresh window. Automatic reset counts are not saved either. After the manager restarts, each slot starts
+      again with no resets used.
+    </p>
+
+    <h2 id="sensors">SensorVoter and SensorSim</h2>
+    <p>
+      Readings of one quantity by three sensors never match exactly. Noise, calibration and timing make them differ a
+      little, so the replicas&#39; exact vote does not fit them. <code>SensorVoter</code> compares readings within a
+      tolerance instead. It is a flight component, added in v0.8.0. It makes no decision itself: it calls{' '}
+      <code>quorum_sensor_select</code> and <code>quorum_sensor_observe</code> (MRU-SV-001).
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Input port</td>
+            <td>
+              <code>readingsIn</code> (cycle, three <code>I32</code> values, three presence flags)
+            </td>
+          </tr>
+          <tr>
+            <td>Output port</td>
+            <td>
+              <code>selectedOut</code> (cycle, value, checked)
+            </td>
+          </tr>
+          <tr>
+            <td>Command</td>
+            <td>
+              <code>INCLUDE_SENSOR</code>
+            </td>
+          </tr>
+          <tr>
+            <td>Parameters</td>
+            <td>
+              <code>Tolerance</code> (U32, default 0, in the readings&#39; units), <code>ExcludeAfter</code> (U8,
+              default 5; 0 never excludes)
+            </td>
+          </tr>
+          <tr>
+            <td>Telemetry</td>
+            <td>
+              <code>Agreed</code>, <code>Unchecked</code>, <code>Disagreed</code>, <code>Outliers</code> each cycle;{' '}
+              <code>Excluded</code> on change
+            </td>
+          </tr>
+          <tr>
+            <td>Events</td>
+            <td>
+              <code>SensorOutlier</code> and <code>SensorsDisagree</code> (both throttled at 10),{' '}
+              <code>UncheckedValue</code> (throttled at 5), <code>SensorExcluded</code>, <code>SensorIncluded</code>,{' '}
+              <code>IncludeRefused</code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">The full model: SensorVoter.fpp in fprime/Mru/Components/SensorVoter.</p>
+    <p style="margin-top: 16px">
+      Each cycle the voter marks the readings of excluded sensors absent and chooses from the rest:
+    </p>
+    <ul class="sig-list">
+      <li>
+        <strong>Three readings:</strong> the median, if at least one other reading is within the tolerance of it. A
+        reading further away is an outlier, with an event, and is never chosen. If no other reading is that close, the
+        readings disagree.
+      </li>
+      <li>
+        <strong>Two readings:</strong> their midpoint, if they are within the tolerance of each other. If not, nothing
+        says which is right, and the voter delivers nothing for the cycle.
+      </li>
+      <li>
+        <strong>One reading:</strong> delivered, marked unchecked.
+      </li>
+      <li>
+        <strong>Exclusion:</strong> a sensor that is an outlier in <code>ExcludeAfter</code> agreed cycles in a row is
+        excluded, and its readings are no longer used. A short spike is forgiven. A cycle with no agreed value changes
+        no count. <code>INCLUDE_SENSOR</code> brings an excluded sensor back with its count at 0.
+      </li>
+    </ul>
+    <p>
+      <code>SensorSim</code> is for test builds only. After <code>SENSORS_ON(noise, accuracy, seed)</code> it sends
+      three readings of a known value each cycle: a triangle wave from 20,000 to 22,000 and back every 400 cycles, with
+      seeded uniform noise. <code>SENSOR_FAULT</code> schedules a <code>SPIKE</code>, <code>DRIFT</code>,{' '}
+      <code>STUCK</code> or <code>DROP</code> on one sensor. It counts correct, wrong and unchecked values, cycles with
+      no value, and cycles in which a plain average of the readings was wrong (<code>Correct</code>, <code>Wrong</code>,{' '}
+      <code>UncheckedValues</code>, <code>Withheld</code>, <code>AverageWrong</code>). Both components are in{' '}
+      <code>MruQuorum</code>, off until <code>SENSORS_ON</code>. When on, the summary adds a <code>sensors:</code> line.
+    </p>
+    <p>
+      Run 4, segment 4 runs them for 40 s: a spike on sensor 1 at cycle 60 (three cycles), a drift on sensor 2 from
+      cycle 120, and sensor 0 frozen from cycle 260. Tolerance 2.00, noise up to 0.50 (the readings are in hundredths),
+      exclusion after 5 outlier cycles. In a full-length native run in the build container (not the flight processor),
+      399 cycles gave 279 correct values, 0 wrong, and 120 cycles with no value. The spike was masked and sensor 1 kept.
+      Sensor 2 was excluded at cycle 137. From cycle 279 the two readings left disagreed, so the voter delivered
+      nothing. A plain average of the same readings was wrong in 261 of the 399 cycles. Source: the{' '}
+      <a href={`${docs}/fault-model.md#run-4-approved-not-flown`}>fault model</a>. The readings are simulated, with a
+      known true value.
+    </p>
+
+    <h2 id="cycle">One cycle</h2>
+    <p>The order follows a tick of the demo, so the same seed gives the same counts:</p>
+    <ul class="sig-list">
+      <li>
+        <strong>Close the last cycle.</strong> Decide it if it is not yet decided, with a missing reply as absent. Count
+        missed replies, and fail tests that had a full cycle to answer.
+      </li>
+      <li>
+        <strong>Start the next.</strong> Ask every ACTIVE slot. On the last replica, ask for two results on even cycles
+        only, and add the known-answer test every <code>KatPeriod</code> cycles.
+      </li>
+      <li>
+        <strong>Decide as soon as every answer is in.</strong> Strikes, the test of two disagreeing replicas, and the
+        periodic test follow at once.
+      </li>
+    </ul>
+    <p>
+      A replica that dies stops answering, so the manager finds the death by silence. When a death leaves one replica,
+      the cycles until it is marked lost end as caught disagreements. The demo kills its replicas itself and knows at
+      once; this is the one place the counts differ.
     </p>
 
     <h2 id="deployment">Deployment</h2>
@@ -227,15 +420,17 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       PRETTY. In ESA&#39;s OPS-SAT experiment environment, on a laptop under emulation, the package ran full length on
       October 22, 2026: 148 seconds, 0 wrong results, the counts of the demo within the system test&#39;s rule, a
       restore from the state file after a kill, and 1.2% to 1.5% CPU in the timed run. The second deployment flew in its
-      place. See <a href={`${repo}/docs/opssat.md`}>the operations note</a>.
+      place. See <a href={`${docs}/opssat.md`}>the operations note</a>.
     </p>
     <p>
       A second deployment puts each replica in a process of its own: <code>MruQuorum</code>, the manager process, starts
-      three <code>MruReplica</code> processes, linked through F&#180;&#39;s GenericHub over Unix socket pairs (no
-      network), and pins them to the SEPP&#39;s two cores. The kill is real: the manager sends SIGKILL to a replica
-      process at the start of a cycle. In ESA&#39;s environment under emulation it gave the same counts and events as
-      the first deployment, with the three processes pinned in every segment. It ran on the SEPP, on the FlatSat and in
-      orbit, on October 28, 2026 (<a href="#opssat-run3">below</a>).
+      three <code>MruReplica</code> processes, linked through F&#180;&#39;s GenericHub over <code>SOCK_SEQPACKET</code>{' '}
+      Unix socket pairs (no network), and pins them to the SEPP&#39;s two cores. The kill is real: the manager sends
+      SIGKILL to a replica process at the start of a cycle. In ESA&#39;s environment under emulation it gave the same
+      counts and events as the first deployment, with the three processes pinned in every segment. It ran on the SEPP,
+      on the FlatSat and in orbit, on October 28, 2026 (<a href="#opssat-run3">below</a>). Both deployments wire{' '}
+      <code>manager.resetOut</code> to <code>injector.resetIn</code>. Only <code>MruQuorum</code> holds{' '}
+      <code>SensorVoter</code> and <code>SensorSim</code>.
     </p>
     <p>
       On one processor the manager and the replicas share the processor. A manager that falls behind used to close
@@ -244,6 +439,22 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       missing at once, counts against no replica; with an answer missing it is withheld and counted (MRU-RM-023). In a
       container starved of processor time, the old rule halted 9 of 15 runs and the new one none; no run gave a wrong
       result.
+    </p>
+
+    <h2 id="links">Message check</h2>
+    <p>
+      In <code>MruQuorum</code> every reply crosses a socket. Since v0.9.0 the manager process checks each message from
+      a replica on its link, before the hub decodes it (MRU-DEP-008). A message passes only if it is exactly one
+      well-formed <code>ReplicaReply</code> on hub port 0: the right type, port and length, a valid{' '}
+      <code>RequestKind</code>, and nothing left over. The manager takes at most four messages from a replica in one
+      cycle. It drops and counts anything else. The summary gives the count per replica on its{' '}
+      <code>links: dropped=</code> line. A replica that sends only garbage is silent to the manager, and is lost.
+    </p>
+    <p>
+      Real bit flips made by software found the need for this check (MRU-DEP-009), in the package for run 4, segment 6.
+      A corrupted replica sent a reply too short to decode. F&#180;&#39;s generated port code in the manager asserted on
+      it and ended the manager process, in 1 of 64 native runs at 200 flips per second from start-up. After the fix, the
+      manager did not crash in 160 native runs. See the <a href={`${docs}/fault-model.md`}>fault model</a>.
     </p>
 
     <h2 id="opssat-run3">On OPS-SAT</h2>
@@ -300,46 +511,149 @@ const repo = 'https://github.com/mruspace/flight/blob/v0.7.0';
       <a href="https://mru.space/research/flight-orbit-3/">№ 008</a>.
     </p>
 
-    <h2 id="cycle">One cycle</h2>
-    <p>The order follows a tick of the demo, so the same seed gives the same counts:</p>
-    <ul class="sig-list">
-      <li>
-        <strong>Close the last cycle.</strong> Decide it if it is not yet decided, with a missing reply as absent. Count
-        missed replies, and fail tests that had a full cycle to answer.
-      </li>
-      <li>
-        <strong>Start the next.</strong> Ask every ACTIVE slot. On the last replica, ask for two results on even cycles
-        only, and add the known-answer test every <code>KatPeriod</code> cycles.
-      </li>
-      <li>
-        <strong>Decide as soon as every answer is in.</strong> Strikes, the test of two disagreeing replicas, and the
-        periodic test follow at once.
-      </li>
-    </ul>
+    <h2 id="opssat-run4">Run 4</h2>
     <p>
-      A replica that dies stops answering, so the manager finds the death by silence. When a death leaves one replica,
-      the cycles until it is marked lost end as caught disagreements. The demo kills its replicas itself and knows at
-      once; this is the one place the counts differ.
+      Run 4 was approved by the OPS-SAT team on November 16, 2026, and the v0.9.0 package was sent. It has not flown. It
+      runs <code>MruQuorum</code> with three <code>MruReplica</code> processes and the cFS app, in six segments of 40 s,
+      at 100 ms per cycle. Segments 1 to 3 share their faults: replica 1 hangs at cycle 60 and again at 300, and replica
+      2&#39;s process is killed with SIGKILL at cycle 150, a real dead unit.
+    </p>
+    <div class="tbl-box" tabindex="0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Segment</th>
+            <th>Result</th>
+            <th>Where</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hl">
+            <td>1 · Shrinking quorum, resets on (ResetLimit 3)</td>
+            <td class="m">
+              Replica 1 reset and taken back twice; replica 2 kept out after 3 resets; 2 units live at the end; 0 wrong
+            </td>
+            <td>Native, build container</td>
+          </tr>
+          <tr>
+            <td>2 · Shrinking quorum, resets off</td>
+            <td class="m">Replica 0 alone in self-check; 0 wrong</td>
+            <td>Native, build container</td>
+          </tr>
+          <tr>
+            <td>3 · Fixed TMR</td>
+            <td class="m">Halted at cycle 153; 0 wrong</td>
+            <td>Native, build container</td>
+          </tr>
+          <tr>
+            <td>
+              4 · Sensors (<a href="#sensors">above</a>)
+            </td>
+            <td class="m">399 cycles: 279 correct, 0 wrong, 120 with no value</td>
+            <td>Native, build container</td>
+          </tr>
+          <tr>
+            <td>
+              5 · cFS app (<a href="#cfs">below</a>)
+            </td>
+            <td class="m">400 cycles: 318 correct, 3 caught, 0 wrong</td>
+            <td>ESA environment image, 2026-11-13</td>
+          </tr>
+          <tr>
+            <td>6 · Real bit flips</td>
+            <td class="m">2 flips per second per replica from 2 s; 0 wrong in each of 3 full runs</td>
+            <td>ESA environment image, 2026-11-16</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tiny">
+      Segments 1 to 3: a full-length native run of each segment, from the{' '}
+      <a href="https://github.com/mruspace/flight/blob/main/CHANGELOG.md">changelog</a> (0.8.0). Segments 4 to 6 and the
+      whole package: the <a href={`${docs}/fault-model.md#run-4-approved-not-flown`}>fault model</a>. ESA&#39;s
+      environment image is 32-bit ARM emulated on a laptop, not the flight processor. In it, the five-segment package
+      ran 205 s on November 13, 2026; with segment 6, three full runs took 246 s each, every exit 0, 0 wrong in every
+      segment. Faults are simulated. In segment 6 they are real bit flips made by software, in user space, one bit at a
+      time. The runs show the recovery logic, not a recovered device: a reset ends a simulated hang.
+    </p>
+    <p style="margin-top: 16px">
+      In segment 6 a thread in each replica process flips one random bit at a time in that process&#39;s own memory: its
+      code, read-only data, data, heap and stacks. It logs each flip before it makes it. The manager runs the shrinking
+      quorum with no resets and a known-answer test on the last replica every cycle, and is told nothing about the
+      flips. A flipped replica stops at 2 s of CPU time and 256 KB of files, and no process writes a core file.
+    </p>
+
+    <h2 id="cfs">cFS application</h2>
+    <p>
+      <a href={`${repo}/cfs`}>cfs/</a> runs the same decision core as an application of NASA&#39;s core Flight System
+      (cFS), added in v0.8.0. cFE, OSAL and PSP are pinned at the commits of the cFS bundle v7.0.1, unchanged. The Mru
+      app is C99. It runs three replicas as cFE child tasks, with the payload of the F&#180; deployment, and takes every
+      decision through <code>quorum.h</code>. Faults come from a schedule in <code>/cf/mru.cfg</code>. No sample or lab
+      application is built, so nothing opens a network socket.
+    </p>
+    <p>
+      Around the core the app keeps the F&#180; manager&#39;s rules: strikes, known-answer tests, loss after three
+      silent cycles, self-check on the last replica, and a withheld cycle when every answer is missing. It does not have
+      the automatic resets or the sensor voter: those are F&#180; only. <code>cfs/build.sh</code> builds it in the
+      F&#180; build container, static 32-bit ARM by default and native with <code>NATIVE=1</code>. CI builds it
+      natively.
+    </p>
+    <p>
+      Natively, under an enforced 128 MB address-space limit with <code>MALLOC_ARENA_MAX=1</code>, the process used 9.0
+      MB of address space (November 13, 2026). In ESA&#39;s OPS-SAT environment image on November 13, 2026, run 4
+      segment 5 ran 40 s at 100 ms with the faults of run 1: 400 cycles, 318 correct, 3 caught, 0 wrong. The stuck
+      replica 1 was retired on its known answer at cycle 122, and the hung replica 0 was lost at cycle 242. No socket
+      was open, and nothing was left behind. Source: <a href={`${repo}/cfs/README.md`}>cfs/README.md</a>. Built and run
+      on the ground, not flown.
     </p>
 
     <h2 id="c">C interface</h2>
     <p>
       <code>quorum-ffi</code> builds the core as a <code>no_std</code> static library with a C header,{' '}
       <a href={`${repo}/quorum-ffi/include/quorum.h`}>quorum.h</a>. It is not tied to F&#180;: any C or C++ framework
-      can use it.
+      can use it. The cFS app uses it too.
     </p>
     <pre class="pre" tabindex="0">uint8_t quorum_mode(uint8_t policy, uint32_t alive);
 quorum_verdict quorum_decide(uint8_t policy, const quorum_reply *replies);
 void quorum_health_init(quorum_health *health);
 bool quorum_health_strike(quorum_health *health, uint32_t replica, uint64_t cycle);
-void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
+void quorum_health_clear(quorum_health *health, uint32_t replica);
+quorum_sensor_selection quorum_sensor_select(const quorum_reading *readings, uint32_t tolerance);
+quorum_sensor_run quorum_sensor_observe(uint8_t run, bool outlier, uint8_t limit);</pre>
+    <p style="margin-top: 16px">The sensor functions use these constants and types:</p>
+    <pre class="pre" tabindex="0">/* sensors (quorum::sensor) */
+#define QUORUM_SENSORS 3
+#define QUORUM_SENSOR_AGREED 0    /* two or more readings agree within the tolerance */
+#define QUORUM_SENSOR_UNCHECKED 1 /* the only reading, not cross-checked */
+#define QUORUM_SENSOR_DISAGREE 2  /* readings disagree; nothing delivered */
+#define QUORUM_SENSOR_NOTHING 3   /* no reading */
+
+/* One sensor&#39;s reading; present is false for no reading or a sensor excluded. */
+typedef struct {'{'}
+    bool present;
+    int32_t value;
+{'}'} quorum_reading;
+
+/* The choice for one cycle. */
+typedef struct {'{'}
+    uint8_t outcome;                  /* AGREED, UNCHECKED, DISAGREE or NOTHING */
+    int32_t value;                    /* meaningful only for AGREED and UNCHECKED */
+    bool outlier[QUORUM_SENSORS];     /* readings beyond the tolerance (three readings, AGREED) */
+{'}'} quorum_sensor_selection;
+
+/* A sensor&#39;s outlier count after one cycle. */
+typedef struct {'{'}
+    uint8_t run;  /* outlier cycles in a row */
+    bool exclude; /* the count reached the limit: exclude the sensor */
+{'}'} quorum_sensor_run;</pre>
     <p style="margin-top: 16px">
       Only plain values cross. The health record lives in the caller&#39;s memory. Out-of-range input gets the safe
       answer: a policy that is not 0 or 1 halts, an unknown reply kind counts as absent, a replica above 2 changes
-      nothing, and a null pointer does the same. Five Kani proofs show that <code>quorum_mode</code>,{' '}
-      <code>quorum_decide</code>, <code>quorum_health_strike</code> and <code>quorum_health_clear</code> give the
-      core&#39;s answer for every valid input, and the safe answer for a bad policy, an unknown reply kind or a replica
-      above 2. Unit tests check the null pointers. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
+      nothing, and a null pointer does the same. Seven Kani proofs show that <code>quorum_mode</code>,{' '}
+      <code>quorum_decide</code>, <code>quorum_health_strike</code>, <code>quorum_health_clear</code>,{' '}
+      <code>quorum_sensor_select</code> and <code>quorum_sensor_observe</code> give the core&#39;s answer for every
+      valid input, and the safe answer for a bad policy, an unknown reply kind or a replica above 2. Unit tests check
+      the null pointers. See <a href="/core/quorum-crate/#proofs">Kani proofs</a>.
     </p>
 
     <h2 id="tests">Verification</h2>
@@ -354,7 +668,7 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
         <tbody>
           <tr>
             <td>Kani, core and C interface</td>
-            <td class="m">9 of 9 proofs</td>
+            <td class="m">16 of 16 proofs: 4 core, 5 sensor selection, 7 C interface</td>
           </tr>
           <tr>
             <td>C test of quorum.h</td>
@@ -363,8 +677,8 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
           <tr>
             <td>F&#180; unit tests</td>
             <td>
-              44, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 8, RedundancyManager 23, RunRecorder 4.
-              Built with address and undefined-behavior sanitizers.
+              59, by requirement: HealthRegistry 5, ReplicaHost 5, FaultInjector 9, RedundancyManager 27, RunRecorder 4,
+              SensorVoter 6, SensorSim 3. Built with address and undefined-behavior sanitizers.
             </td>
           </tr>
           <tr class="hl">
@@ -376,10 +690,20 @@ void quorum_health_clear(quorum_health *health, uint32_t replica);</pre>
             </td>
           </tr>
           <tr>
-            <td>Deployment against the demo</td>
+            <td>Deployments end to end</td>
             <td>
-              The <code>MruOpsSat</code> package with short caps: each segment&#39;s counts against the demo on the same
-              faults, the events on their cycles, the restore from the state file, and a second run in the same folder.
+              <code>scripts/fprime-deployment.sh</code>: the <code>MruOpsSat</code> package with short caps, each
+              segment&#39;s counts against the demo on the same faults, the events on their cycles, the restore from the
+              state file, and a second run in the same folder. <code>VERSION=2 scripts/fprime-deployment.sh</code>: the
+              same for <code>MruQuorum</code>, with a real kill.
+            </td>
+          </tr>
+          <tr>
+            <td>Run 4 package end to end</td>
+            <td>
+              <code>scripts/opssat-run4.sh</code>, with short caps, on a native build that includes the cFS mission: a
+              hung replica reset and taken back, a killed one kept out after three resets, the sensor segment, the cFS
+              segment, and segment 6 at 20 flips per second. No segment delivers a wrong result.
             </td>
           </tr>
         </tbody>
@@ -399,7 +723,9 @@ pip install -r requirements.txt
 fprime-util generate &amp;&amp; fprime-util build
 fprime-util generate --ut &amp;&amp; fprime-util check --all
 <span class="c"># the deployment, from the repository root, in the build container</span>
-<span class="k">cd</span> .. &amp;&amp; ./opssat/fprime/build.sh  <span class="c"># static 32-bit ARM build and its sequences</span></pre>
+<span class="k">cd</span> .. &amp;&amp; ./opssat/fprime/build.sh  <span class="c"># static 32-bit ARM build and its sequences</span>
+./opssat/run4/build.sh  <span class="c"># run 4: MruQuorum, MruReplica and the sequences</span>
+./cfs/build.sh  <span class="c"># the cFS mission, static 32-bit ARM</span></pre>
     <p style="margin-top: 16px">
       The build calls <code>cargo</code> to compile the core, so it needs a Rust toolchain. On macOS 27, the CMake that
       F&#180; v4.4.1 pins fails; CMake 4.4 works. Linux works with the pinned version.
@@ -410,8 +736,15 @@ fprime-util generate --ut &amp;&amp; fprime-util check --all
       <li>
         <strong>One run on flight hardware.</strong> The second deployment ran once in orbit, 148 seconds on one payload
         processor with two cores, in user space, with faults from a command sequence. Not a hardware-redundancy test and
-        not a radiation test. Everything else runs in tests on general-purpose processors, the ARM build under
-        emulation. See the <a href="/concepts/architecture/">architecture status</a>.
+        not a radiation test. Run 4 was approved by the OPS-SAT team on November 16, 2026, and the package was sent; it
+        has not flown. Everything else runs in tests on general-purpose processors, the ARM build under emulation. See
+        the <a href="/concepts/architecture/">architecture status</a>.
+      </li>
+      <li>
+        <strong>Simulated faults.</strong> The runs reproduce the symptoms of hardware faults, not their causes. The one
+        exception is run 4, segment 6: real bit flips made by software, in user space, one bit at a time. The resets end
+        a simulated hang, so the runs show the recovery logic, not a recovered device. The readings of{' '}
+        <code>SensorSim</code> are simulated. See the <a href={`${docs}/fault-model.md#not-modeled`}>fault model</a>.
       </li>
       <li>
         <strong>No ground link yet.</strong> The first deployment has no communications stack. A deployment with
@@ -419,8 +752,8 @@ fprime-util generate --ut &amp;&amp; fprime-util check --all
       </li>
       <li>
         <strong>Not built:</strong> the retry of a cycle after a disagreement on two replicas (the whitepaper&#39;s
-        &quot;dual with checkpointing&quot;), the health score by error rate and response time, the power accountant,
-        and memory scrubbing.
+        &quot;dual with checkpointing&quot;), a step that makes every replica&#39;s input equal before it computes, the
+        health score by error rate and response time, the power accountant, and memory scrubbing.
       </li>
     </ul>
     <DocsEnd />

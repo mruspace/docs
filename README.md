@@ -10,7 +10,8 @@
 # docs.mru.space
 
 Documentation for Mru's open core: the shrinking-quorum runtime
-([mruspace/flight](https://github.com/mruspace/flight)), the Dusk simulator
+([mruspace/flight](https://github.com/mruspace/flight)), the Mru Field
+supervisor ([mruspace/field](https://github.com/mruspace/field)), the Dusk simulator
 ([mruspace/dusk](https://github.com/mruspace/dusk)) and Mru 2049
 ([mruspace/2049](https://github.com/mruspace/2049)).
 

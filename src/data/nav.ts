@@ -17,6 +17,7 @@ export type NavId =
   | 'qual'
   | 'crate'
   | 'cli'
+  | 'sensor'
   | 'proofs'
   | 'targets'
   | 'bench'
@@ -24,7 +25,12 @@ export type NavId =
   | 'model'
   | 'sweep'
   | 'fprime'
+  | 'cfs'
   | 'opssat'
+  | 'field'
+  | 'field-config'
+  | 'field-staged'
+  | 'field-floods'
   | '2049';
 
 export interface NavGroup {
@@ -56,9 +62,19 @@ export const NAV: NavGroup[] = [
     items: [
       { id: 'crate', label: 'quorum crate', href: '/core/quorum-crate/' },
       { id: 'cli', label: 'quorum CLI', href: '/core/quorum-cli/' },
+      { id: 'sensor', label: 'Sensor selection', href: '/core/quorum-crate/#sensor' },
       { id: 'proofs', label: 'Kani proofs', href: '/core/quorum-crate/#proofs' },
       { id: 'targets', label: 'Targets and builds', href: '/core/quorum-crate/#targets' },
       { id: 'bench', label: 'Bench', href: '/core/bench/' },
+    ],
+  },
+  {
+    title: 'Mru Field',
+    items: [
+      { id: 'field', label: 'Supervisor', href: '/field/' },
+      { id: 'field-config', label: 'Configuration', href: '/field/#config' },
+      { id: 'field-staged', label: 'Staged updates', href: '/field/#staged' },
+      { id: 'field-floods', label: 'Flood limits', href: '/field/#floods' },
     ],
   },
   {
@@ -73,6 +89,7 @@ export const NAV: NavGroup[] = [
     title: 'Integrations',
     items: [
       { id: 'fprime', label: 'F´ components', href: '/core/fprime/' },
+      { id: 'cfs', label: 'cFS application', href: '/core/fprime/#cfs' },
       { id: 'opssat', label: 'OPS-SAT run', href: '/core/quorum-cli/#opssat' },
     ],
   },
@@ -96,13 +113,13 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/shrinking-quorum/',
     short: 'Shrinking quorum',
-    updated: '2026-10-19',
+    updated: '2026-11-18',
     file: 'src/pages/concepts/shrinking-quorum.astro',
   },
   {
     path: '/concepts/architecture/',
     short: 'Architecture status',
-    updated: '2026-10-19',
+    updated: '2026-11-18',
     file: 'src/pages/concepts/architecture.astro',
   },
   {
@@ -114,27 +131,27 @@ export const PAGES: DocPage[] = [
   {
     path: '/concepts/qualification/',
     short: 'Qualification path',
-    updated: '2026-10-19',
+    updated: '2026-11-18',
     file: 'src/pages/concepts/qualification.astro',
   },
   {
     path: '/core/quorum-crate/',
     short: 'The quorum crate',
-    updated: '2026-10-11',
-    source: 'quorum/src/lib.rs',
+    updated: '2026-11-18',
+    source: 'quorum/src/lib.rs, quorum/src/sensor.rs',
     file: 'src/pages/core/quorum-crate.astro',
   },
   {
     path: '/core/quorum-cli/',
     short: 'The quorum CLI',
-    updated: '2026-10-19',
+    updated: '2026-11-18',
     source: 'demo/src/main.rs',
     file: 'src/pages/core/quorum-cli.astro',
   },
   {
     path: '/core/fprime/',
     short: 'F´ components',
-    updated: '2026-10-19',
+    updated: '2026-11-18',
     source: 'fprime/Mru/Components',
     file: 'src/pages/core/fprime.astro',
   },
@@ -144,6 +161,13 @@ export const PAGES: DocPage[] = [
     updated: '2026-10-19',
     source: 'scripts/bench.sh',
     file: 'src/pages/core/bench.astro',
+  },
+  {
+    path: '/field/',
+    short: 'Mru Field',
+    updated: '2026-11-18',
+    source: 'field docs/spec.md',
+    file: 'src/pages/field/index.astro',
   },
   { path: '/simulation/dusk/', short: 'Dusk', updated: '2026-10-11', file: 'src/pages/simulation/dusk.astro' },
   { path: '/lab/2049/', short: 'Mru 2049', updated: '2026-09', file: 'src/pages/lab/2049.astro' },

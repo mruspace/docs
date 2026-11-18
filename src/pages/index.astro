@@ -42,8 +42,9 @@ import DocsLayout from '../layouts/DocsLayout.astro';
         <h3 class="h3">F&#180; and OPS-SAT</h3>
         <p class="small soft" style="margin: 10px 0 0">
           Ran in orbit on OPS-SAT PRETTY on October 18, 22 and 28, 2026 (exp4051), the last as an F&#180; deployment,
-          after the software environment and FlatSat tests. F&#180; components around the Rust core, a C interface for
-          other frameworks, and the operations note and package for the experiment.
+          after the software environment and FlatSat tests. F&#180; components around the Rust core, a cFS application,
+          a C interface for other frameworks, and the operations note and package for the experiment. Run 4 is approved,
+          not flown.
         </p>
       </a>
       <a class="card" href="/lab/2049/" style="text-decoration: none">
@@ -72,7 +73,7 @@ cargo run --release --bin quorum -- --policy shrink --ticks 20000 --seed 1 \
 policy=tmr ticks=20000 seed=1 upset_rate=0.001
 useful=9990 detected=9 wrong=0 <span class="s">halted_at=10000</span> alive_at_end=1 stopped=halted last_useful=9999 kat_tests=0</pre>
     <p class="tiny" style="margin-top: 10px">
-      flight v0.3.1 on an Apple M4. The counts depend only on the seed.
+      flight v0.9.0 on an Apple M4, November 18, 2026. The counts depend only on the seed.
     </p>
     <p style="margin-top: 16px">
       Fixed TMR halts at tick 10000, when the second replica dies. The shrinking quorum keeps running on the last
@@ -103,9 +104,19 @@ cargo run --release --bin dusk -- --sweep   <span class="c"># sensitivity, about
             <td class="m">
               <a href="https://github.com/mruspace/flight">mruspace/flight</a>
             </td>
-            <td>Decision core, demo program, bench, C interface and F&#180; components</td>
-            <td>Rust, C++</td>
-            <td class="m">v0.7.0</td>
+            <td>Decision core, demo program, bench, C interface, F&#180; components and a cFS application</td>
+            <td>Rust, C++, C</td>
+            <td class="m">v0.9.0</td>
+          </tr>
+          <tr>
+            <td class="m">
+              <a href="https://github.com/mruspace/field">mruspace/field</a>
+            </td>
+            <td>
+              <a href="/field/">Mru Field</a>: the supervisor for hard-to-reach systems on Earth
+            </td>
+            <td>Rust</td>
+            <td class="m">v0.3.0</td>
           </tr>
           <tr>
             <td class="m">
