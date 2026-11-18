@@ -12,7 +12,8 @@ export default {
   sections: [
     { title: 'Start', match: (p) => p === '/' },
     { title: 'Concepts', match: (p) => p.startsWith('/concepts/') },
-    { title: 'Core runtime', match: (p) => p.startsWith('/core/') },
+    { title: 'Core runtime', match: (p) => p.startsWith('/core/') && p !== '/core/fprime/' },
+    { title: 'Mru Flight', match: (p) => p === '/core/fprime/' },
     { title: 'Mru Field', match: (p) => p.startsWith('/field/') },
     { title: 'Simulation', match: (p) => p.startsWith('/simulation/') },
     { title: 'Lab', match: (p) => p.startsWith('/lab/') },
