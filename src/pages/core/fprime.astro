@@ -377,12 +377,12 @@ const docs = 'https://github.com/mruspace/flight/blob/main/docs';
     <p>
       Run 4, segment 4 runs them for 40 s: a spike on sensor 1 at cycle 60 (three cycles), a drift on sensor 2 from
       cycle 120, and sensor 0 frozen from cycle 260. Tolerance 2.00, noise up to 0.50 (the readings are in hundredths),
-      exclusion after 5 outlier cycles. In a full-length native run in the build container (not the flight processor),
-      399 cycles gave 279 correct values, 0 wrong, and 120 cycles with no value. The spike was masked and sensor 1 kept.
-      Sensor 2 was excluded at cycle 137. From cycle 279 the two readings left disagreed, so the voter delivered
-      nothing. A plain average of the same readings was wrong in 261 of the 399 cycles. Source: the{' '}
-      <a href={`${docs}/fault-model.md#run-4-approved-not-flown`}>fault model</a>. The readings are simulated, with a
-      known true value.
+      exclusion after 5 outlier cycles. In orbit in run 4, on November 20, 2026, and in a full-length native run in the
+      build container, 399 cycles gave 279 correct values, 0 wrong, and 120 cycles with no value. The spike was masked
+      and sensor 1 kept. Sensor 2 was excluded at cycle 137. From cycle 279 the two readings left disagreed, so the
+      voter delivered nothing. A plain average of the same readings was wrong in 261 of the 399 cycles. Source: the{' '}
+      <a href={`${docs}/fault-model.md#run-4-flown-november-20-2026`}>fault model</a>. The readings are simulated, with
+      a known true value.
     </p>
 
     <h2 id="cycle">One cycle</h2>
@@ -513,10 +513,11 @@ const docs = 'https://github.com/mruspace/flight/blob/main/docs';
 
     <h2 id="opssat-run4">Run 4</h2>
     <p>
-      Run 4 was approved by the OPS-SAT team on November 16, 2026, and the v0.9.0 package was sent. It has not flown. It
-      runs <code>MruQuorum</code> with three <code>MruReplica</code> processes and the cFS app, in six segments of 40 s,
-      at 100 ms per cycle. Segments 1 to 3 share their faults: replica 1 hangs at cycle 60 and again at 300, and replica
-      2&#39;s process is killed with SIGKILL at cycle 150, a real dead unit.
+      Run 4 was approved by the OPS-SAT team on November 16, 2026. The v0.9.0 package ran on TU Graz&#39;s FlatSat and
+      in orbit on OPS-SAT PRETTY on November 20, 2026: 244 seconds in orbit, every exit 0, 0 wrong results in every
+      segment. It runs <code>MruQuorum</code> with three <code>MruReplica</code> processes and the cFS app, in six
+      segments of 40 s, at 100 ms per cycle. Segments 1 to 3 share their faults: replica 1 hangs at cycle 60 and again
+      at 300, and replica 2&#39;s process is killed with SIGKILL at cycle 150, a real dead unit.
     </p>
     <div class="tbl-box" tabindex="0">
       <table class="tbl">
@@ -531,50 +532,57 @@ const docs = 'https://github.com/mruspace/flight/blob/main/docs';
           <tr class="hl">
             <td>1 · Shrinking quorum, resets on (ResetLimit 3)</td>
             <td class="m">
-              Replica 1 reset and taken back twice; replica 2 kept out after 3 resets; 2 units live at the end; 0 wrong
+              394 correct, 3 caught, 0 wrong; replica 1 reset and taken back at cycles 63 and 303; replica 2 kept out
+              after 3 resets at 159; 2 units live at the end
             </td>
-            <td>Native, build container</td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
           <tr>
             <td>2 · Shrinking quorum, resets off</td>
-            <td class="m">Replica 0 alone in self-check; 0 wrong</td>
-            <td>Native, build container</td>
+            <td class="m">271 correct, 3 caught, 0 wrong; replica 0 alone in self-check from cycle 154</td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
           <tr>
             <td>3 · Fixed TMR</td>
-            <td class="m">Halted at cycle 153; 0 wrong</td>
-            <td>Native, build container</td>
+            <td class="m">148 correct, 0 wrong; halted at cycle 153</td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
           <tr>
             <td>
               4 · Sensors (<a href="#sensors">above</a>)
             </td>
-            <td class="m">399 cycles: 279 correct, 0 wrong, 120 with no value</td>
-            <td>Native, build container</td>
+            <td class="m">399 cycles: 279 correct, 0 wrong, 120 with no value; sensor 2 excluded at cycle 137</td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
           <tr>
             <td>
               5 · cFS app (<a href="#cfs">below</a>)
             </td>
             <td class="m">400 cycles: 318 correct, 3 caught, 0 wrong</td>
-            <td>ESA environment image, 2026-11-13</td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
           <tr>
             <td>6 · Real bit flips</td>
-            <td class="m">2 flips per second per replica from 2 s; 0 wrong in each of 3 full runs</td>
-            <td>ESA environment image, 2026-11-16</td>
+            <td class="m">
+              173 flips, 149 in code; replica 2 crashed and was lost at cycle 229; 399 correct, 0 caught, 0 wrong
+            </td>
+            <td>In orbit, 2026-11-20</td>
           </tr>
         </tbody>
       </table>
     </div>
     <p class="tiny">
-      Segments 1 to 3: a full-length native run of each segment, from the{' '}
-      <a href="https://github.com/mruspace/flight/blob/main/CHANGELOG.md">changelog</a> (0.8.0). Segments 4 to 6 and the
-      whole package: the <a href={`${docs}/fault-model.md#run-4-approved-not-flown`}>fault model</a>. ESA&#39;s
-      environment image is 32-bit ARM emulated on a laptop, not the flight processor. In it, the five-segment package
-      ran 205 s on November 13, 2026; with segment 6, three full runs took 246 s each, every exit 0, 0 wrong in every
-      segment. Faults are simulated. In segment 6 they are real bit flips made by software, in user space, one bit at a
-      time. The runs show the recovery logic, not a recovered device: a reset ends a simulated hang.
+      Source: the files the satellite sent down, in{' '}
+      <a href="https://github.com/mruspace/flight/tree/main/opssat/results/2026-11-20-ops-sat-pretty-on-board-run4">
+        opssat/results
+      </a>
+      , and the <a href={`${docs}/fault-model.md#run-4-flown-november-20-2026`}>fault model</a>. On the FlatSat the same
+      morning every count was the same, except where a cycle closed late and the manager withheld it (MRU-RM-023):
+      replica 1 back at 304, and fixed TMR 149 correct. Replicas 0 and 1 of segment 6 crashed at shutdown, after the
+      last result. Before flight, in ESA&#39;s environment image (32-bit ARM emulated on a laptop), three full runs took
+      246 s each, every exit 0, 0 wrong in every segment. Faults are simulated. In segment 6 they are real bit flips
+      made by software, in user space, one bit at a time. The runs show the recovery logic, not a recovered device: a
+      reset ends a simulated hang.
     </p>
     <p style="margin-top: 16px">
       In segment 6 a thread in each replica process flips one random bit at a time in that process&#39;s own memory: its
@@ -603,8 +611,9 @@ const docs = 'https://github.com/mruspace/flight/blob/main/docs';
       MB of address space (November 13, 2026). In ESA&#39;s OPS-SAT environment image on November 13, 2026, run 4
       segment 5 ran 40 s at 100 ms with the faults of run 1: 400 cycles, 318 correct, 3 caught, 0 wrong. The stuck
       replica 1 was retired on its known answer at cycle 122, and the hung replica 0 was lost at cycle 242. No socket
-      was open, and nothing was left behind. Source: <a href={`${repo}/cfs/README.md`}>cfs/README.md</a>. Built and run
-      on the ground, not flown.
+      was open, and nothing was left behind. Source: <a href={`${repo}/cfs/README.md`}>cfs/README.md</a>. On November
+      20, 2026, it ran in orbit on OPS-SAT PRETTY in run 4 with the same counts, its first run on flight hardware, and
+      peaked at 4.5 MB of address space on the SEPP.
     </p>
 
     <h2 id="c">C interface</h2>
@@ -734,11 +743,11 @@ fprime-util generate --ut &amp;&amp; fprime-util check --all
     <h2 id="limits">Limits</h2>
     <ul class="sig-list">
       <li>
-        <strong>One run on flight hardware.</strong> The second deployment ran once in orbit, 148 seconds on one payload
-        processor with two cores, in user space, with faults from a command sequence. Not a hardware-redundancy test and
-        not a radiation test. Run 4 was approved by the OPS-SAT team on November 16, 2026, and the package was sent; it
-        has not flown. Everything else runs in tests on general-purpose processors, the ARM build under emulation. See
-        the <a href="/concepts/architecture/">architecture status</a>.
+        <strong>Two runs on flight hardware.</strong> The second deployment ran twice in orbit, 148 and 244 seconds on
+        one payload processor with two cores, in user space, with faults from a command sequence and, in run 4, real bit
+        flips made by software. Not a hardware-redundancy test and not a radiation test. Everything else runs in tests
+        on general-purpose processors, the ARM build under emulation. See the{' '}
+        <a href="/concepts/architecture/">architecture status</a>.
       </li>
       <li>
         <strong>Simulated faults.</strong> The runs reproduce the symptoms of hardware faults, not their causes. The one
